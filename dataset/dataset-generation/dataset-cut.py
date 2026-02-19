@@ -13,7 +13,7 @@ margin_y_bottom = 6
 n_cells_x = 20
 n_cells_y = [21, 22, 22, 22, 22, 22, 22]
 
-def cut(img_path, base_save_path, init_x, init_y, cell_width, cell_height, n_cells_x, n_cells_y, remove_white_squares=True):
+def cut(img_path, base_save_path, init_x, init_y, cell_width, cell_height, n_cells_x, n_cells_y, page_number, remove_white_squares=True):
 	with Image.open(img_path) as img:
 		coords = get_coordinates(init_x, init_y, cell_width, cell_height, n_cells_x, n_cells_y)
 		for i, coord in enumerate(coords):
@@ -30,7 +30,7 @@ def cut(img_path, base_save_path, init_x, init_y, cell_width, cell_height, n_cel
 			row_number = floor(i / n_cells_x)
 			column_number = i % n_cells_x
 
-			save_path = base_save_path + f"{row_number}-{column_number}.png"
+			save_path = base_save_path + f"{page_number} ({row_number}, {column_number}).png"
 			output_dir = os.path.dirname(save_path)
 			if output_dir and not os.path.exists(output_dir):
 				os.makedirs(output_dir)
@@ -57,5 +57,5 @@ def place_points(dataset_path, init_x, init_y, cell_width, cell_height, n_cells_
 for i in range(7):
 	dataset_path = f"dataset/dataset-data/raw-data/page-{i+1}.png"
 	img_base_save_path = f"dataset/dataset-data/generated-images/generated_imgs_p{i+1}/"
-	cut(dataset_path, img_base_save_path, init_x[i], init_y[i], cell_width, cell_height[i], n_cells_x, n_cells_y[i])
+	cut(dataset_path, img_base_save_path, init_x[i], init_y[i], cell_width, cell_height[i], n_cells_x, n_cells_y[i], i+1)
 	# place_points(dataset_path, init_x[i], init_y[i], cell_width, cell_height[i], n_cells_x, n_cells_y[i])

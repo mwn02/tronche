@@ -1,3 +1,6 @@
 Pillow
 pymupdf
 numpy
+fastapi
+uvicorn
+websockets

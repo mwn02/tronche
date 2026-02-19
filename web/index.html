@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<body style="margin:0; overflow:hidden; background:#1a1a1a;">
+    <canvas id="canvas" style="display:block; touch-action:none;"></canvas>
+    <div id="status" style="position:fixed; top:20px; left:20px; color:white; font-family:sans-serif;">Connecting...
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const status = document.getElementById('status');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.strokeStyle = '#00ffcc';
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+
+        // Auto-detect host so it works from any device on the LAN
+        const socket = new WebSocket(`ws://${window.location.host}/ws/draw`);
+
+        socket.onopen = () => status.innerText = "Connected to Tronchosaure";
+        socket.onmessage = (e) => status.innerText = e.data;
+
+        let drawing = false;
+
+        function sendCoords(e) {
+            if (!drawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+            // Draw locally for zero lag
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            // Send to PC in real-time
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ x: Math.round(x), y: Math.round(y) }));
+            }
+        }
+
+        canvas.addEventListener('pointerdown', (e) => {
+            drawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        });
+        canvas.addEventListener('pointermove', sendCoords);
+        window.addEventListener('pointerup', () => drawing = false);
+    </script>
+</body>
+
+</html>

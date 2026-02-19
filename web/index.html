@@ -1,56 +1,657 @@
 <!DOCTYPE html>
 <html>
 
-<body style="margin:0; overflow:hidden; background:#1a1a1a;">
-    <canvas id="canvas" style="display:block; touch-action:none;"></canvas>
-    <div id="status" style="position:fixed; top:20px; left:20px; color:white; font-family:sans-serif;">Connecting...
+<head>
+    <title>Tronche</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1515;
+            --surface-color: #2a1f1f;
+            --primary-color: #d94a4a;
+            --text-color: #f0e6e6;
+            --text-muted: #a09090;
+            --border-color: #4a3535;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 320px;
+            background: var(--surface-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        .logo-area {
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 24px;
+            margin: 0 0 8px 0;
+            color: var(--primary-color);
+            letter-spacing: -0.02em;
+        }
+
+        .tagline {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        /* Color Picker */
+        .color-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: none;
+            cursor: pointer;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        /* Toggle Switch */
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(16px);
+        }
+
+        /* Results Area */
+        #results-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            position: relative;
+        }
+
+        #main-guess {
+            font-size: 80px;
+            margin-bottom: 16px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #main-guess.pulse {
+            transform: scale(1.2);
+        }
+
+        /* Feedback UI */
+        #feedback-area {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        #feedback-area.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-correct {
+            background: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .btn-wrong {
+            background: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        /* Correction Modal/Input */
+        #correction-ui {
+            display: none;
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        #correction-input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-family: inherit;
+            margin-bottom: 8px;
+            box-sizing: border-box;
+        }
+
+        /* Session Stats */
+        #session-stats {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .stat-value-highlight {
+            color: white;
+            font-weight: 600;
+        }
+
+        #advanced-stats {
+            width: 100%;
+            display: none;
+            /* Hidden by default */
+            margin-top: 24px;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .stat-label {
+            width: 24px;
+            text-align: center;
+            margin-right: 8px;
+        }
+
+        .stat-bar-bg {
+            flex-grow: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease-out;
+        }
+
+        .stat-value {
+            width: 40px;
+            text-align: right;
+            font-feature-settings: "tnum";
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* Canvas Area */
+        #canvas-container {
+            flex-grow: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #251e1e 0%, #1a1515 100%);
+            cursor: crosshair;
+        }
+
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+
+        #status {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column-reverse;
+            }
+
+            #sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 12px;
+                box-sizing: border-box;
+                display: flex;
+                flex-wrap: wrap;
+                /* Allow wrapping */
+            }
+
+            .logo-area,
+            .control-group {
+                margin: 0;
+            }
+
+            h1 {
+                font-size: 18px;
+            }
+
+            .tagline,
+            .toggle-row label {
+                display: none;
+            }
+
+            #results-area {
+                min-height: auto;
+                flex-direction: row;
+                gap: 16px;
+                order: 2;
+                /* Put results after controls on mobile */
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            #feedback-area {
+                margin-top: 0;
+            }
+
+            #main-guess {
+                font-size: 40px;
+                margin: 0;
+            }
+
+            #advanced-stats {
+                display: none !important;
+            }
+
+            #correction-ui {
+                position: absolute;
+                bottom: 100%;
+                background: var(--surface-color);
+                padding: 10px;
+                border-radius: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <div class="logo-area">
+            <h1>Tronche</h1>
+            <div class="tagline">Technical Recognition of Optical Networks for Complex Handrawn Emojis</div>
+        </div>
+
+        <div class="control-group">
+            <label>Brush</label>
+            <div class="color-picker-wrapper">
+                <input type="color" id="colorPicker" value="#d94a4a">
+                <span style="font-size: 13px; color: var(--text-muted);">Brush Color</span>
+            </div>
+
+            <div class="toggle-row">
+                <label for="advancedToggle" style="margin:0; cursor:pointer;">Advanced Mode</label>
+                <label class="switch">
+                    <input type="checkbox" id="advancedToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div id="results-area">
+            <div id="main-guess">🐢</div>
+
+            <div id="feedback-area">
+                <button class="btn btn-correct" onclick="submitFeedback(true)">✅ Correct</button>
+                <button class="btn btn-wrong" onclick="showCorrection()">❌ Wrong</button>
+            </div>
+
+            <div id="correction-ui">
+                <label>What was it?</label>
+                <input type="text" id="correction-input" placeholder="Enter emoji (e.g. 🦕)" maxlength="2">
+                <button class="btn" style="width:100%; background:var(--primary-color); color:white;"
+                    onclick="submitCorrection()">Submit</button>
+                <button class="btn" style="width:100%; background:transparent; margin-top:4px; font-size:12px;"
+                    onclick="cancelCorrection()">Cancel</button>
+            </div>
+
+            <div id="advanced-stats">
+                <!-- Stats injected here -->
+            </div>
+        </div>
+
+        <div id="session-stats">
+            Session Accuracy: <span id="accuracy-stat" class="stat-value-highlight">0%</span>
+            (<span id="correct-count">0</span>/<span id="total-count">0</span>)
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="canvas"></canvas>
+        <div id="status">Connecting...</div>
     </div>
 
     <script>
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         const status = document.getElementById('status');
+        const mainGuess = document.getElementById('main-guess');
+        const advancedStats = document.getElementById('advanced-stats');
+        const advancedToggle = document.getElementById('advancedToggle');
+        const colorPicker = document.getElementById('colorPicker');
+        const container = document.getElementById('canvas-container');
+        const feedbackArea = document.getElementById('feedback-area');
+        const correctionUi = document.getElementById('correction-ui');
+        const correctionInput = document.getElementById('correction-input');
 
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        ctx.strokeStyle = '#00ffcc';
-        ctx.lineWidth = 5;
-        ctx.lineCap = 'round';
+        // Stats elements
+        const accuracyStat = document.getElementById('accuracy-stat');
+        const correctCount = document.getElementById('correct-count');
+        const totalCount = document.getElementById('total-count');
 
-        // Auto-detect host so it works from any device on the LAN
+        // Drawing state
+        let currentStrokes = []; // Store strokes as arrays of points {x, y, time}
+        let currentStroke = [];
+
+        // Resize canvas
+        function resize() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = colorPicker.value;
+        }
+        window.addEventListener('resize', resize);
+        resize(); // Initial sizing
+
+        // Config
+        let showAdvanced = false;
+
+        advancedToggle.addEventListener('change', (e) => {
+            showAdvanced = e.target.checked;
+            advancedStats.style.display = showAdvanced ? 'block' : 'none';
+        });
+
+        colorPicker.addEventListener('input', (e) => {
+            ctx.strokeStyle = e.target.value;
+        });
+
+        // WebSocket
         const socket = new WebSocket(`ws://${window.location.host}/ws/draw`);
 
-        socket.onopen = () => status.innerText = "Connected to Tronchosaure";
-        socket.onmessage = (e) => status.innerText = e.data;
+        socket.onopen = () => status.innerText = "● System Online";
+        socket.onclose = () => status.innerText = "○ System Offline";
 
+        socket.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+
+            // Handle Stats Update
+            if (data.type === "stats") {
+                updateSessionStats(data.data);
+                return;
+            }
+
+            // Handle Guess
+            if (data.type === "guess") {
+                mainGuess.innerText = data.guess;
+                mainGuess.classList.remove('pulse');
+                void mainGuess.offsetWidth;
+                mainGuess.classList.add('pulse');
+
+                // Show feedback buttons if we have drawn something
+                if (currentStrokes.length > 0) {
+                    feedbackArea.classList.add('visible');
+                }
+
+                if (showAdvanced) {
+                    renderStats(data.probabilities);
+                }
+            }
+        };
+
+        function updateSessionStats(stats) {
+            const total = stats.total;
+            const correct = stats.correct;
+            const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+            accuracyStat.innerText = `${accuracy}%`;
+            correctCount.innerText = correct;
+            totalCount.innerText = total;
+        }
+
+        function renderStats(probs) {
+            advancedStats.innerHTML = '';
+            const entries = Object.entries(probs).slice(0, 5);
+
+            entries.forEach(([emoji, prob]) => {
+                const percentage = Math.round(prob * 100);
+                const row = document.createElement('div');
+                row.className = 'stat-row';
+                row.innerHTML = `
+                    <div class="stat-label">${emoji}</div>
+                    <div class="stat-bar-bg">
+                        <div class="stat-bar-fill" style="width: ${percentage}%"></div>
+                    </div>
+                    <div class="stat-value">${percentage}%</div>
+                `;
+                advancedStats.appendChild(row);
+            });
+        }
+
+        // Feedback Logic
+        function submitFeedback(isCorrect) {
+            const label = isCorrect ? mainGuess.innerText : null;
+            if (isCorrect) {
+                sendFeedback(true, label);
+            }
+        }
+
+        function showCorrection() {
+            feedbackArea.style.display = 'none';
+            correctionUi.style.display = 'block';
+            correctionInput.value = '';
+            correctionInput.focus();
+        }
+
+        function submitCorrection() {
+            const actual = correctionInput.value.trim();
+            if (actual) {
+                sendFeedback(false, actual);
+            }
+        }
+
+        function cancelCorrection() {
+            correctionUi.style.display = 'none';
+            feedbackArea.style.display = 'flex';
+        }
+
+        function sendFeedback(correct, label) {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    type: "feedback",
+                    correct: correct,
+                    label: label,
+                    vectors: currentStrokes
+                }));
+            }
+
+            // Reset UI
+            feedbackArea.classList.remove('visible');
+            feedbackArea.style.display = 'flex';
+            correctionUi.style.display = 'none';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentStrokes = [];
+            currentStroke = [];
+            mainGuess.innerText = "🐢"; // Reset placeholder
+
+            // Re-render empty stats if advanced is open (optional)
+            if (showAdvanced) advancedStats.innerHTML = '';
+        }
+
+        // Drawing Logic
         let drawing = false;
 
-        function sendCoords(e) {
-            if (!drawing) return;
+        function getPos(e) {
             const rect = canvas.getBoundingClientRect();
             const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
             const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            return { x, y };
+        }
 
-            // Draw locally for zero lag
+        function startDraw(e) {
+            if (e.button !== 0 && !e.touches) return;
+            drawing = true;
+            const { x, y } = getPos(e);
+
+            currentStroke = [{ x: Math.round(x), y: Math.round(y), t: Date.now() }];
+            currentStrokes.push(currentStroke);
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+
+            // Hide feedback buttons when starting a new drawing
+            feedbackArea.classList.remove('visible');
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            e.preventDefault();
+            const { x, y } = getPos(e);
+
+            // Record point
+            currentStroke.push({ x: Math.round(x), y: Math.round(y), t: Date.now() });
+
             ctx.lineTo(x, y);
             ctx.stroke();
 
-            // Send to PC in real-time
+            // Send live coordinates for prediction
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({ x: Math.round(x), y: Math.round(y) }));
             }
         }
 
-        canvas.addEventListener('pointerdown', (e) => {
-            drawing = true;
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        });
-        canvas.addEventListener('pointermove', sendCoords);
-        window.addEventListener('pointerup', () => drawing = false);
+        function endDraw() {
+            drawing = false;
+        }
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', endDraw);
+
+        canvas.addEventListener('touchstart', startDraw, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        window.addEventListener('touchend', endDraw);
+
     </script>
 </body>
 

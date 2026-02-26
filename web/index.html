@@ -130,11 +130,10 @@
             transform: rotate(15deg);
         }
 
-        /* Theme-adaptive SVG icons */
+        /* Theme-adaptive SVG icons — sepia palette */
         .icon-svg {
-            height: 1.2em;
-            width: 1.2em;
-            vertical-align: middle;
+            height: 100%;
+            width: 100%;
             object-fit: contain;
             transition: filter 0.3s;
         }
@@ -148,25 +147,21 @@
             margin-right: 6px;
         }
 
-        /* Monochrome icons (logo, settings) - sepia tint for light theme */
-        .icon-mono,
+        /* Light theme: warm sepia brown tint matching --primary-color #8b5a2b */
+        .icon-svg,
         .icon-logo {
-            filter: sepia(1) saturate(3) brightness(0.4) hue-rotate(-10deg);
+            filter: sepia(1) saturate(2.5) brightness(0.45) hue-rotate(-5deg);
         }
 
-        /* Multi-color icons (eraser, erase all) - subtle sepia warmth for light theme */
-        .icon-multi {
-            filter: sepia(0.25) saturate(1.4) brightness(0.85);
-        }
-
-        /* Dark theme icon adaptations */
-        [data-theme="dark"] .icon-mono,
+        /* Dark theme: warm light sepia matching --primary-color #d99a5a */
+        [data-theme="dark"] .icon-svg,
         [data-theme="dark"] .icon-logo {
-            filter: invert(1) sepia(0.4) saturate(2) brightness(0.85) hue-rotate(-10deg);
+            filter: invert(1) sepia(0.5) saturate(2) brightness(0.82) hue-rotate(-5deg);
         }
 
-        [data-theme="dark"] .icon-multi {
-            filter: invert(0.85) sepia(0.2) saturate(1.4) brightness(1.1);
+        .settings-btn .icon-svg {
+            height: 20px;
+            width: 20px;
         }
 
         .settings-popup {
@@ -275,48 +270,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.2);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            border-radius: 8px;
+            background: var(--surface-color);
+            border: 2px solid transparent;
+            padding: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            width: 100%;
+            width: 32px;
+            height: 32px;
             box-sizing: border-box;
-            transition: background 0.2s;
-            margin-bottom: 24px;
+            transition: transform 0.1s, border-color 0.2s;
         }
 
         .tool-btn.active {
-            background: rgba(255, 255, 255, 0.1);
             border-color: var(--text-color);
+            transform: scale(1.1);
         }
 
         .tool-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .action-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-        }
-
-        .action-row .tool-btn {
-            margin-bottom: 0;
-            flex: 1;
-        }
-
-        .btn-danger {
-            color: #e74c3c;
-            border-color: rgba(231, 76, 60, 0.3);
-        }
-
-        .btn-danger:hover {
-            background: rgba(231, 76, 60, 0.1);
+            transform: scale(1.1);
         }
 
         /* Toggle Switch */
@@ -619,17 +590,12 @@
                 <div class="color-swatch color-4" data-color="var(--brush-4)"></div>
                 <div class="color-swatch color-5" data-color="var(--brush-5)"></div>
                 <div class="color-swatch color-6" data-color="var(--brush-6)"></div>
-                <div class="color-swatch color-7" data-color="var(--brush-7)"></div>
-                <div class="color-swatch color-8" data-color="var(--brush-8)"></div>
-            </div>
-
-            <div class="action-row">
-                <button class="tool-btn" id="eraserBtn"><img src="icons/tronche_eraser.svg" class="icon-svg icon-multi" alt=""> Eraser</button>
-                <button class="tool-btn btn-danger" id="eraseAllBtn" onclick="clearCanvas()"><img src="icons/tronche_eraseall.svg" class="icon-svg icon-multi" alt=""> Erase All</button>
+                <button class="tool-btn" id="eraserBtn" title="Eraser"><img src="icons/tronche_eraser.svg" class="icon-svg" alt=""></button>
+                <button class="tool-btn" id="eraseAllBtn" onclick="clearCanvas()" title="Erase All"><img src="icons/tronche_eraseall.svg" class="icon-svg" alt=""></button>
             </div>
         </div>
 
-        <button class="settings-btn" id="settingsBtn" title="Settings"><img src="icons/tronche_settings.svg" class="icon-svg icon-mono" alt=""></button>
+        <button class="settings-btn" id="settingsBtn" title="Settings"><img src="icons/tronche_settings.svg" class="icon-svg" alt=""></button>
 
         <div class="settings-popup" id="settingsPopup">
             <div class="toggle-row">

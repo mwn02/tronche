@@ -130,6 +130,45 @@
             transform: rotate(15deg);
         }
 
+        /* Theme-adaptive SVG icons */
+        .icon-svg {
+            height: 1.2em;
+            width: 1.2em;
+            vertical-align: middle;
+            object-fit: contain;
+            transition: filter 0.3s;
+        }
+
+        .icon-logo {
+            height: 1.4em;
+            width: auto;
+            vertical-align: middle;
+            object-fit: contain;
+            transition: filter 0.3s;
+            margin-right: 6px;
+        }
+
+        /* Monochrome icons (logo, settings) - sepia tint for light theme */
+        .icon-mono,
+        .icon-logo {
+            filter: sepia(1) saturate(3) brightness(0.4) hue-rotate(-10deg);
+        }
+
+        /* Multi-color icons (eraser, erase all) - subtle sepia warmth for light theme */
+        .icon-multi {
+            filter: sepia(0.25) saturate(1.4) brightness(0.85);
+        }
+
+        /* Dark theme icon adaptations */
+        [data-theme="dark"] .icon-mono,
+        [data-theme="dark"] .icon-logo {
+            filter: invert(1) sepia(0.4) saturate(2) brightness(0.85) hue-rotate(-10deg);
+        }
+
+        [data-theme="dark"] .icon-multi {
+            filter: invert(0.85) sepia(0.2) saturate(1.4) brightness(1.1);
+        }
+
         .settings-popup {
             position: absolute;
             top: 68px;
@@ -567,7 +606,7 @@
 
     <div id="sidebar">
         <div class="logo-area">
-            <h1>Tronche</h1>
+            <h1><img src="icons/tronche_logo.svg" class="icon-logo" alt="Tronche Logo">Tronche</h1>
             <div class="tagline">Technical Recognition of Optical Networks for Complex Handrawn Emojis</div>
         </div>
 
@@ -585,12 +624,12 @@
             </div>
 
             <div class="action-row">
-                <button class="tool-btn" id="eraserBtn">🧹 Eraser</button>
-                <button class="tool-btn btn-danger" id="eraseAllBtn" onclick="clearCanvas()">🗑️ Erase All</button>
+                <button class="tool-btn" id="eraserBtn"><img src="icons/tronche_eraser.svg" class="icon-svg icon-multi" alt="Eraser"> Eraser</button>
+                <button class="tool-btn btn-danger" id="eraseAllBtn" onclick="clearCanvas()"><img src="icons/tronche_eraseall.svg" class="icon-svg icon-multi" alt="Erase All"> Erase All</button>
             </div>
         </div>
 
-        <button class="settings-btn" id="settingsBtn" title="Settings">⚙️</button>
+        <button class="settings-btn" id="settingsBtn" title="Settings"><img src="icons/tronche_settings.svg" class="icon-svg icon-mono" alt="Settings"></button>
 
         <div class="settings-popup" id="settingsPopup">
             <div class="toggle-row">

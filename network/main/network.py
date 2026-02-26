@@ -9,20 +9,25 @@ class Network(nn.Module):
 		self.device = device
 		
 		self.flatten = nn.Flatten()
-		self.linear_relu_stack = nn.Sequential(
-				nn.Linear(32*32, 512),
-				nn.ReLU(),
-				nn.Linear(512, 512),
-				nn.ReLU(),
-				nn.Linear(512, 5)
-			)
-		self.softmax = nn.Softmax(dim=1)
+		self.convolutional_layer = nn.Sequential(
+			nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
+			nn.ReLU(),
+			nn.MaxPool2d(kernel_size=2, stride=2),
+		)
+		self.linear_layer = nn.Sequential(
+			nn.Linear(32*16*16, 512),
+			nn.ReLU(),
+			nn.Linear(512, 512),
+			nn.ReLU(),
+			nn.Linear(512, 5)
+		)
 		self.to(device)
 	
 	def forward(self, x):
+		x = self.convolutional_layer(x)
 		x = self.flatten(x)
-		logits = self.linear_relu_stack(x)
-		return self.softmax(logits)
+		x = self.linear_layer(x)
+		return x
 
 	def train_model(self, dataloader, loss_fn, optimizer):
 		size = len(dataloader.dataset)

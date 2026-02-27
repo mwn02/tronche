@@ -1,8 +1,8 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 Pillow
-pymupdf
 numpy
 fastapi
-uvicorn
+uvicorn[standard]
 websockets
 torch
 torchvision

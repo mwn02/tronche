@@ -1,0 +1,11 @@
+# Training data - not needed at runtime
+data/MNIST/
+data/temp/
+data/sample_class*.png
+data/debug_last_received.png
+
+# Dataset generation assets
+dataset/
+
+# Training/dev code
+code/

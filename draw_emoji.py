@@ -51,14 +51,14 @@ def predict_pil(image: Image.Image, model: Network, device: str) -> dict[str, fl
 
 
 class EmojiDrawerApp:
-		def __init__(self, model_path: Path):
+		def __init__(self, model_path: Path, model_name: str):
 				self.device = "cuda" if torch.cuda.is_available() else "cpu"
 				self.model = Network(self.device)
 				self.model.load_state_dict(_load_state_dict(model_path, self.device))
 				self.model.eval()
 
 				self.root = tk.Tk()
-				self.root.title("Tronche — Draw Emoji (model_94.pth)")
+				self.root.title(f"Tronche — Draw Emoji ({model_name})")
 
 				self.canvas_size = 420
 				self.brush_width = 18
@@ -207,11 +207,12 @@ class EmojiDrawerApp:
 
 
 def main() -> int:
-		parser = argparse.ArgumentParser(description="Draw an emoji and test model_94.pth.")
+		model_name = "model_98.6.pth"
+		parser = argparse.ArgumentParser(description=f"Draw an emoji and test {model_name}.")
 		parser.add_argument(
 				"--model",
-				default=str(ROOT_DIR / "network" / "main" / "model_94.pth"),
-				help="Path to .pth weights (default: network/main/model_94.pth)",
+				default=str(ROOT_DIR / "network" / "main" / model_name),
+				help=f"Path to .pth weights (default: network/main/{model_name})",
 		)
 		parser.add_argument(
 				"--smoke",
@@ -237,7 +238,7 @@ def main() -> int:
 				print(probs)
 				return 0
 
-		app = EmojiDrawerApp(model_path)
+		app = EmojiDrawerApp(model_path, model_name)
 		app.run()
 		return 0
 

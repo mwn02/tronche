@@ -807,7 +807,8 @@
         });
 
         // WebSocket
-        const socket = new WebSocket(`ws://${window.location.host}/ws/draw`);
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socket = new WebSocket(`${wsProtocol}//${window.location.host}/ws/draw`);
 
         socket.onopen = () => status.innerText = "● System Online";
         socket.onclose = () => status.innerText = "○ System Offline";

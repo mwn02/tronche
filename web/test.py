@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import uvicorn
 import json
@@ -20,8 +21,11 @@ from network.main.network import Network
 
 app = FastAPI()
 
+# Serve icons and other static assets from the web directory
+app.mount("/icons", StaticFiles(directory=Path(__file__).parent / "icons"), name="icons")
+
 # Data storage path
-DATA_DIR = Path("data/temp")
+DATA_DIR = ROOT_DIR / "data" / "temp"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Session stats
@@ -36,22 +40,24 @@ EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 # Load trained model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Network(device)
-model_path = ROOT_DIR / "network" / "main" / "model_94.pth"
+model_path = ROOT_DIR / "network" / "main" / "model_98.6.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()
 print(f"Model loaded from {model_path} on {device}")
 
 # Preprocessing pipeline — mirrors training transforms, without augmentation
 inference_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
     transforms.Resize((32, 32)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    transforms.Grayscale(num_output_channels=1),
+    transforms.Normalize(mean=[0.5], std=[0.5]),
 ])
 
 def predict(image_base64: str) -> dict:
     image_bytes = base64.b64decode(image_base64)
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    # Save last received image for debugging
+    image.save(ROOT_DIR / "data" / "debug_last_received.png")
     tensor = inference_transform(image).unsqueeze(0).to(device)
     with torch.no_grad():
         logits = model(tensor)
@@ -114,4 +120,5 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

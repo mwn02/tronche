@@ -16,21 +16,18 @@
 
             /* Light Theme Palette */
             --brush-1: #8b5a2b;
-            /* Sepia/Primary */
             --brush-2: #3e2723;
-            /* Dark Brown/Text */
             --brush-3: #c08035;
-            /* Orange/Ochre */
             --brush-4: #5d4037;
-            /* Medium Brown */
             --brush-5: #a1887f;
-            /* Warm Gray */
             --brush-6: #388e3c;
-            /* Forest Green */
             --brush-7: #d32f2f;
-            /* Deep Red */
             --brush-8: #1976d2;
-            /* Classic Blue */
+
+            /* SVG icon filter — converts black SVG paths to the primary sepia brown (#8b5a2b) */
+            --icon-filter: invert(33%) sepia(30%) saturate(789%) hue-rotate(348deg) brightness(82%) contrast(83%);
+            /* Danger icon filter — warm red for erase-all */
+            --icon-filter-danger: invert(27%) sepia(60%) saturate(900%) hue-rotate(340deg) brightness(85%) contrast(100%);
         }
 
         [data-theme="dark"] {
@@ -43,21 +40,18 @@
 
             /* Dark Theme Palette */
             --brush-1: #d99a5a;
-            /* Light Sepia/Primary */
             --brush-2: #f4ecdf;
-            /* Off-White/Text */
             --brush-3: #ffb74d;
-            /* Bright Orange */
             --brush-4: #a1887f;
-            /* Warm Light Gray */
             --brush-5: #8d6e63;
-            /* Medium Brown */
             --brush-6: #81c784;
-            /* Light Green */
             --brush-7: #e57373;
-            /* Light Red */
             --brush-8: #64b5f6;
-            /* Light Blue */
+
+            /* SVG icon filter — converts black paths to the golden sepia (#d99a5a) */
+            --icon-filter: invert(67%) sepia(38%) saturate(571%) hue-rotate(342deg) brightness(107%) contrast(87%);
+            /* Danger icon filter — muted warm red in dark */
+            --icon-filter-danger: invert(55%) sepia(30%) saturate(700%) hue-rotate(330deg) brightness(115%) contrast(90%);
         }
 
         body {
@@ -70,81 +64,111 @@
             height: 100vh;
         }
 
-        /* Sidebar */
+        /* ── Sidebar ─────────────────────────────────── */
         #sidebar {
             position: relative;
-            width: 320px;
+            width: 300px;
+            flex-shrink: 0;
             background: var(--surface-color);
-            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            padding: 24px;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+            padding: 22px 20px;
+            box-shadow: 2px 0 24px rgba(0, 0, 0, 0.18);
             z-index: 1000;
+            /* overflow visible so the torn paper edge can bleed into the canvas */
+            overflow: visible;
+            box-sizing: border-box;
         }
 
+        /* ── Logo ────────────────────────────────────── */
         .logo-area {
-            margin-bottom: 32px;
+            margin-bottom: 26px;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            filter: var(--icon-filter);
+            transition: filter 0.3s;
         }
 
         h1 {
             font-weight: 600;
-            font-size: 28px;
-            margin: 0 0 8px 0;
+            font-size: 26px;
+            margin: 0;
             color: var(--primary-color);
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
         }
 
         .tagline {
-            font-size: 15px;
+            font-size: 11px;
             color: var(--text-muted);
-            line-height: 1.4;
+            line-height: 1.45;
+            opacity: 0.85;
         }
 
-        /* Controls */
+        /* ── Controls ────────────────────────────────── */
         .control-group {
-            margin-bottom: 24px;
+            margin-bottom: 18px;
         }
 
+        /* ── Settings button ──────────────────────────── */
         .settings-btn {
             position: absolute;
-            top: 24px;
-            right: 24px;
-            background: rgba(0, 0, 0, 0.2);
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.07);
             border: 1px solid var(--border-color);
-            color: var(--text-color);
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            transition: all 0.2s;
+            transition: background 0.2s;
             z-index: 100;
+            padding: 0;
+        }
+
+        .settings-btn img {
+            width: 17px;
+            height: 17px;
+            filter: var(--icon-filter);
+            transition: transform 0.3s ease, filter 0.3s;
         }
 
         .settings-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(15deg);
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        .settings-btn:hover img {
+            transform: rotate(22deg);
         }
 
         .settings-popup {
             position: absolute;
-            top: 68px;
-            right: 24px;
+            top: 60px;
+            right: 20px;
             background: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            width: 200px;
+            padding: 14px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+            width: 188px;
             z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transform: translateY(-10px);
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: translateY(-8px);
+            transition: opacity 0.18s ease, transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .settings-popup.show {
@@ -153,212 +177,181 @@
             transform: translateY(0);
         }
 
-        .settings-popup .toggle-row:first-child {
-            margin-top: 0;
-        }
-
         .settings-popup hr {
             border: none;
             border-top: 1px solid var(--border-color);
-            margin: 12px 0;
+            margin: 10px 0;
         }
 
         label {
             display: block;
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.07em;
             color: var(--text-muted);
             margin-bottom: 8px;
         }
 
-        /* Custom Palette */
+        /* ── Color palette ───────────────────────────── */
         .palette {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 24px;
+            gap: 7px;
+            margin-bottom: 18px;
         }
 
         .color-swatch {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 6px;
             cursor: pointer;
             border: 2px solid transparent;
             transition: transform 0.1s, border-color 0.2s;
         }
 
-        .color-swatch:hover {
-            transform: scale(1.1);
-        }
+        .color-swatch:hover  { transform: scale(1.12); }
+        .color-swatch.active { border-color: var(--text-color); transform: scale(1.12); }
 
-        .color-swatch.active {
-            border-color: var(--text-color);
-            transform: scale(1.1);
-        }
+        .color-1 { background-color: var(--brush-1); }
+        .color-2 { background-color: var(--brush-2); }
+        .color-3 { background-color: var(--brush-3); }
+        .color-4 { background-color: var(--brush-4); }
+        .color-5 { background-color: var(--brush-5); }
+        .color-6 { background-color: var(--brush-6); }
+        .color-7 { background-color: var(--brush-7); }
+        .color-8 { background-color: var(--brush-8); }
 
-        /* Swatch Colors */
-        .color-1 {
-            background-color: var(--brush-1);
-        }
-
-        .color-2 {
-            background-color: var(--brush-2);
-        }
-
-        .color-3 {
-            background-color: var(--brush-3);
-        }
-
-        .color-4 {
-            background-color: var(--brush-4);
-        }
-
-        .color-5 {
-            background-color: var(--brush-5);
-        }
-
-        .color-6 {
-            background-color: var(--brush-6);
-        }
-
-        .color-7 {
-            background-color: var(--brush-7);
-        }
-
-        .color-8 {
-            background-color: var(--brush-8);
-        }
-
+        /* ── Tool buttons ────────────────────────────── */
         .tool-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.2);
+            gap: 7px;
+            background: rgba(0, 0, 0, 0.06);
             color: var(--text-color);
             border: 1px solid var(--border-color);
-            padding: 8px;
+            padding: 8px 12px;
             border-radius: 8px;
             cursor: pointer;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             width: 100%;
             box-sizing: border-box;
-            transition: background 0.2s;
-            margin-bottom: 24px;
+            transition: background 0.18s, border-color 0.18s;
+            margin-bottom: 18px;
+        }
+
+        .tool-btn img {
+            width: 16px;
+            height: 16px;
+            filter: var(--icon-filter);
+            flex-shrink: 0;
+            transition: filter 0.3s;
         }
 
         .tool-btn.active {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--text-color);
+            background: rgba(139, 90, 43, 0.11);
+            border-color: var(--primary-color);
         }
 
-        .tool-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
+        .tool-btn:hover { background: rgba(0, 0, 0, 0.1); }
 
         .action-row {
             display: flex;
             gap: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 18px;
         }
 
         .action-row .tool-btn {
             margin-bottom: 0;
             flex: 1;
+            padding: 8px 8px;
         }
 
+        /* Danger variant — erase all */
         .btn-danger {
-            color: #e74c3c;
-            border-color: rgba(231, 76, 60, 0.3);
+            border-color: rgba(200, 70, 50, 0.3);
+        }
+
+        .btn-danger img {
+            filter: var(--icon-filter-danger) !important;
         }
 
         .btn-danger:hover {
-            background: rgba(231, 76, 60, 0.1);
+            background: rgba(200, 70, 50, 0.08) !important;
+            border-color: rgba(200, 70, 50, 0.5);
         }
 
-        /* Toggle Switch */
+        /* ── Toggle switch ───────────────────────────── */
         .toggle-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 16px;
+            margin-top: 12px;
         }
+
+        .toggle-row:first-child { margin-top: 0; }
 
         .switch {
             position: relative;
             display: inline-block;
-            width: 40px;
-            height: 24px;
+            width: 38px;
+            height: 22px;
         }
 
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+        .switch input { opacity: 0; width: 0; height: 0; }
 
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background-color: var(--border-color);
-            transition: .4s;
-            border-radius: 24px;
+            transition: .3s;
+            border-radius: 22px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 18px;
-            width: 18px;
+            height: 16px;
+            width: 16px;
             left: 3px;
             bottom: 3px;
             background-color: white;
-            transition: .4s;
+            transition: .3s;
             border-radius: 50%;
         }
 
-        input:checked+.slider {
-            background-color: var(--primary-color);
-        }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(16px); }
 
-        input:checked+.slider:before {
-            transform: translateX(16px);
-        }
-
-        /* Results Area */
+        /* ── Results area ────────────────────────────── */
         #results-area {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 200px;
+            min-height: 180px;
             position: relative;
         }
 
         #main-guess {
-            font-size: 80px;
-            margin-bottom: 16px;
+            font-size: 76px;
+            line-height: 1;
+            margin-bottom: 14px;
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        #main-guess.pulse {
-            transform: scale(1.2);
-        }
+        #main-guess.pulse { transform: scale(1.2); }
 
-        /* Feedback UI */
+        /* ── Feedback ────────────────────────────────── */
         #feedback-area {
             display: flex;
-            gap: 12px;
-            margin-top: 16px;
+            gap: 10px;
+            margin-top: 14px;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s;
@@ -370,90 +363,90 @@
         }
 
         .btn {
-            padding: 8px 16px;
+            padding: 7px 14px;
             border-radius: 6px;
             border: none;
             font-weight: 500;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s;
-            font-size: 16px;
+            transition: all 0.18s;
+            font-size: 14px;
         }
 
         .btn-correct {
-            background: rgba(46, 204, 113, 0.2);
+            background: rgba(46, 204, 113, 0.14);
             color: #2ecc71;
             border: 1px solid rgba(46, 204, 113, 0.3);
         }
 
         .btn-wrong {
-            background: rgba(231, 76, 60, 0.2);
+            background: rgba(231, 76, 60, 0.14);
             color: #e74c3c;
             border: 1px solid rgba(231, 76, 60, 0.3);
         }
 
         .btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
             filter: brightness(1.1);
         }
 
-        /* Correction Modal/Input */
+        /* ── Correction UI ───────────────────────────── */
         #correction-ui {
             display: none;
-            margin-top: 12px;
+            margin-top: 10px;
             width: 100%;
         }
 
         #correction-input {
             width: 100%;
-            padding: 8px;
+            padding: 7px 10px;
             border-radius: 6px;
             border: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
+            background: rgba(0, 0, 0, 0.07);
+            color: var(--text-color);
             font-family: inherit;
-            margin-bottom: 8px;
+            font-size: 14px;
+            margin-bottom: 7px;
             box-sizing: border-box;
         }
 
-        /* Session Stats */
+        /* ── Session stats ───────────────────────────── */
         #session-stats {
             margin-top: auto;
             border-top: 1px solid var(--border-color);
-            padding-top: 16px;
-            font-size: 15px;
+            padding-top: 14px;
+            font-size: 13px;
             color: var(--text-muted);
         }
 
         .stat-value-highlight {
-            color: white;
+            color: var(--primary-color);
             font-weight: 600;
         }
 
         #advanced-stats {
             width: 100%;
             display: none;
-            /* Hidden by default */
-            margin-top: 24px;
+            margin-top: 18px;
         }
 
         .stat-row {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
-            font-size: 16px;
+            margin-bottom: 7px;
+            font-size: 15px;
         }
 
         .stat-label {
-            width: 24px;
+            width: 22px;
             text-align: center;
             margin-right: 8px;
         }
 
         .stat-bar-bg {
             flex-grow: 1;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
+            height: 5px;
+            background: rgba(0, 0, 0, 0.1);
             border-radius: 3px;
             overflow: hidden;
         }
@@ -466,14 +459,14 @@
         }
 
         .stat-value {
-            width: 40px;
+            width: 38px;
             text-align: right;
             font-feature-settings: "tnum";
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 12px;
         }
 
-        /* Canvas Area */
+        /* ── Canvas area ─────────────────────────────── */
         #canvas-container {
             flex-grow: 1;
             position: relative;
@@ -488,69 +481,53 @@
 
         #status {
             position: absolute;
-            bottom: 20px;
+            bottom: 18px;
             left: 20px;
-            font-size: 14px;
+            font-size: 12px;
             color: var(--text-muted);
-            opacity: 0.7;
+            opacity: 0.6;
             pointer-events: none;
+            letter-spacing: 0.03em;
         }
 
-        /* Mobile Responsive */
+        /* ── Mobile ──────────────────────────────────── */
         @media (max-width: 768px) {
-            body {
-                flex-direction: column-reverse;
-            }
+            body { flex-direction: column-reverse; }
 
             #sidebar {
                 width: 100%;
                 height: auto;
                 flex-direction: row;
                 justify-content: space-between;
-                padding: 12px;
+                padding: 10px 12px;
                 box-sizing: border-box;
                 display: flex;
                 flex-wrap: wrap;
-                /* Allow wrapping */
+                overflow: hidden;
             }
 
-            .logo-area,
-            .control-group {
-                margin: 0;
-            }
 
-            h1 {
-                font-size: 18px;
-            }
+            .logo-area, .control-group { margin: 0; }
 
-            .tagline,
-            .toggle-row label {
-                display: none;
-            }
+            h1 { font-size: 18px; }
+
+            .tagline, .toggle-row label { display: none; }
 
             #results-area {
                 min-height: auto;
                 flex-direction: row;
-                gap: 16px;
+                gap: 14px;
                 order: 2;
-                /* Put results after controls on mobile */
                 width: 100%;
                 justify-content: space-between;
                 align-items: center;
             }
 
-            #feedback-area {
-                margin-top: 0;
-            }
+            #feedback-area { margin-top: 0; }
 
-            #main-guess {
-                font-size: 40px;
-                margin: 0;
-            }
+            #main-guess { font-size: 38px; margin: 0; }
 
-            #advanced-stats {
-                display: none !important;
-            }
+            #advanced-stats { display: none !important; }
 
             #correction-ui {
                 position: absolute;
@@ -566,11 +543,18 @@
 <body>
 
     <div id="sidebar">
+
+
+        <!-- Logo + title -->
         <div class="logo-area">
-            <h1>Tronche</h1>
+            <div class="logo-header">
+                <img src="icons/tronche_logo.svg" class="logo-icon" alt="Tronche logo">
+                <h1>Tronche</h1>
+            </div>
             <div class="tagline">Technical Recognition of Optical Networks for Complex Handrawn Emojis</div>
         </div>
 
+        <!-- Controls -->
         <div class="control-group">
             <label>Color</label>
             <div class="palette" id="palette">
@@ -585,13 +569,23 @@
             </div>
 
             <div class="action-row">
-                <button class="tool-btn" id="eraserBtn">🧹 Eraser</button>
-                <button class="tool-btn btn-danger" id="eraseAllBtn" onclick="clearCanvas()">🗑️ Erase All</button>
+                <button class="tool-btn" id="eraserBtn">
+                    <img src="icons/tronche_erase.svg" alt="">
+                    <span>Eraser</span>
+                </button>
+                <button class="tool-btn btn-danger" id="eraseAllBtn" onclick="clearCanvas()">
+                    <img src="icons/tronche_eraseall.svg" alt="">
+                    <span>Erase All</span>
+                </button>
             </div>
         </div>
 
-        <button class="settings-btn" id="settingsBtn" title="Settings">⚙️</button>
+        <!-- Settings button -->
+        <button class="settings-btn" id="settingsBtn" title="Settings">
+            <img src="icons/tronche_settings.svg" alt="Settings">
+        </button>
 
+        <!-- Settings popup -->
         <div class="settings-popup" id="settingsPopup">
             <div class="toggle-row">
                 <label for="themeToggle" style="margin:0; cursor:pointer;">Dark Mode</label>
@@ -612,8 +606,9 @@
             </div>
         </div>
 
+        <!-- Results / guess display -->
         <div id="results-area">
-            <div id="main-guess">🐢</div>
+            <div id="main-guess">🙂</div>
 
             <div id="feedback-area">
                 <button class="btn btn-correct" onclick="submitFeedback(true)">✅ Correct</button>
@@ -625,13 +620,11 @@
                 <input type="text" id="correction-input" placeholder="Enter emoji (e.g. 🦕)" maxlength="2">
                 <button class="btn" style="width:100%; background:var(--primary-color); color:white;"
                     onclick="submitCorrection()">Submit</button>
-                <button class="btn" style="width:100%; background:transparent; margin-top:4px; font-size:14px;"
+                <button class="btn" style="width:100%; background:transparent; margin-top:4px; font-size:13px;"
                     onclick="cancelCorrection()">Cancel</button>
             </div>
 
-            <div id="advanced-stats">
-                <!-- Stats injected here -->
-            </div>
+            <div id="advanced-stats"></div>
         </div>
 
         <div id="session-stats">
@@ -814,7 +807,8 @@
         });
 
         // WebSocket
-        const socket = new WebSocket(`ws://${window.location.host}/ws/draw`);
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socket = new WebSocket(`${wsProtocol}//${window.location.host}/ws/draw`);
 
         socket.onopen = () => status.innerText = "● System Online";
         socket.onclose = () => status.innerText = "○ System Offline";
@@ -920,19 +914,10 @@
             currentStrokes = [];
             renderHistory = [];
             currentStroke = [];
-            mainGuess.innerText = "🐢"; // Reset placeholder
+            mainGuess.innerText = "🙂"; // Reset placeholder
 
             // Re-render empty stats if advanced is open (optional)
             if (showAdvanced) advancedStats.innerHTML = '';
-        }
-
-        // Action Buttons
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            currentStrokes = [];
-            renderHistory = [];
-            currentStroke = [];
-            feedbackArea.classList.remove('visible');
         }
 
         // Action Buttons
@@ -984,25 +969,67 @@
 
             ctx.lineTo(x, y);
             ctx.stroke();
-
         }
 
         function endDraw() {
             if (!drawing) return;
             drawing = false;
 
-            // Send the full canvas as an image for model inference
             if (currentStrokes.length === 0 || socket.readyState !== WebSocket.OPEN) return;
 
-            const offscreen = document.createElement('canvas');
-            offscreen.width = canvas.width;
-            offscreen.height = canvas.height;
-            const offCtx = offscreen.getContext('2d');
-            offCtx.fillStyle = 'white';
-            offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
-            offCtx.drawImage(canvas, 0, 0);
+            // Compute bounding box of all non-eraser strokes
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            for (const stroke of renderHistory) {
+                if (stroke.isEraser) continue;
+                for (const pt of stroke.points) {
+                    minX = Math.min(minX, pt.x);
+                    minY = Math.min(minY, pt.y);
+                    maxX = Math.max(maxX, pt.x);
+                    maxY = Math.max(maxY, pt.y);
+                }
+            }
+            if (minX === Infinity) return;
 
-            const imageData = offscreen.toDataURL('image/png').split(',')[1];
+            // Add padding, then make square (centered)
+            const PAD = 20;
+            minX = Math.max(0, minX - PAD);
+            minY = Math.max(0, minY - PAD);
+            maxX = Math.min(canvas.width - 1, maxX + PAD);
+            maxY = Math.min(canvas.height - 1, maxY + PAD);
+            const rawW = maxX - minX;
+            const rawH = maxY - minY;
+            const rawSize = Math.max(rawW, rawH);
+            const offX = (rawSize - rawW) / 2;  // centering offset
+            const offY = (rawSize - rawH) / 2;
+
+            // Render directly at 32x32 — matches training data exactly
+            const MODEL_SIZE = 32;
+            const scale = MODEL_SIZE / rawSize;
+
+            const out = document.createElement('canvas');
+            out.width = MODEL_SIZE;
+            out.height = MODEL_SIZE;
+            const outCtx = out.getContext('2d');
+            outCtx.fillStyle = 'white';
+            outCtx.fillRect(0, 0, MODEL_SIZE, MODEL_SIZE);
+            outCtx.strokeStyle = 'black';
+            outCtx.lineWidth = 2.5;  // matches pen-on-paper stroke at 32x32
+            outCtx.lineCap = 'round';
+            outCtx.lineJoin = 'round';
+
+            for (const stroke of renderHistory) {
+                if (stroke.isEraser || stroke.points.length === 0) continue;
+                outCtx.beginPath();
+                outCtx.moveTo((stroke.points[0].x - minX + offX) * scale,
+                              (stroke.points[0].y - minY + offY) * scale);
+                for (let i = 1; i < stroke.points.length; i++) {
+                    outCtx.lineTo((stroke.points[i].x - minX + offX) * scale,
+                                  (stroke.points[i].y - minY + offY) * scale);
+                }
+                outCtx.stroke();
+            }
+
+            const imageData = out.toDataURL('image/png').split(',')[1];
             socket.send(JSON.stringify({ type: 'image', data: imageData }));
         }
 

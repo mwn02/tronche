@@ -95,6 +95,7 @@ def cross_entropy(pred, label):
     return -np.log(pred[label] + 1e-9)
 
 #convolution layer
+
 class ConvLayer:
     def __init__(self, num_filters, filter_size):
         self.num_filters = num_filters
@@ -114,25 +115,7 @@ class ConvLayer:
                     output[i, j, f] = np.sum(region * self.filters[f])
 
         return output
-    
-    def backward_vectorized(self, d_L_d_out, learning_rate):
-    h_out, w_out, num_filters = d_L_d_out.shape
-    f_size = self.filter_size
-    
-    d_L_d_filters = np.zeros(self.filters.shape)
-
-    
-    for i in range(f_size):
-        for j in range(f_size):
-            
-            input_slice = self.input[i:i+h_out, j:j+w_out]
-            for f in range(num_filters):
-                d_L_d_filters[f, i, j] = np.sum(input_slice * d_L_d_out[:, :, f])
-
-    self.filters -= learning_rate * d_L_d_filters
-    return None  # No need to return anything for the convolution layer's backward pass
-    
-
+ 
     
 
 

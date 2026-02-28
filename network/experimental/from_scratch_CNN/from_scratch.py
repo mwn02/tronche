@@ -81,7 +81,7 @@ def relu(x):
     return np.maximum(0, x)
 
 def relu_derivative(x):
-    return (x > 0).astype(float)
+    return 1 if x > 0 else 0
 
 def softmax(x):
     exp = np.exp(x - np.max(x))

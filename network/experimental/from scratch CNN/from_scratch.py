@@ -63,7 +63,6 @@ print(f"Dataset Prep Complete!")
 print(f"Images shape: {X.shape}") # Should be (Number_of_Images, 32, 32, 1)
 print(f"Labels shape: {y.shape}")
 
-
     
 
 

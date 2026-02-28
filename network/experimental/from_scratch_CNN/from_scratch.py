@@ -22,41 +22,37 @@ for label_folder in os.listdir(base_path):
     for image_name in os.listdir(category_path):
         full_path = os.path.join(category_path, image_name)
         
-        try:
-            img = Image.open(full_path)
-            img = img.resize((32, 32), resample=Image.BILINEAR)
-            img = ImageOps.grayscale(img)
+        img = Image.open(full_path)
+        img = img.resize((32, 32), resample=Image.BILINEAR)
+        img = ImageOps.grayscale(img)
 
-            # Data Augmentation (Rotation + Translation)
-            angle = random.uniform(-15, 15)
-            tx = random.uniform(-0.1, 0.1) * 32
-            ty = random.uniform(-0.1, 0.1) * 32
+        # Data Augmentation (Rotation + Translation)
+        angle = random.uniform(-15, 15)
+        tx = random.uniform(-0.1, 0.1) * 32
+        ty = random.uniform(-0.1, 0.1) * 32
 
-            img = img.rotate(
-                angle, 
-                resample=Image.BILINEAR, 
-                expand=False, 
-                translate=(tx, ty),
-                fillcolor=0
-            )
+        img = img.rotate(
+            angle, 
+            resample=Image.BILINEAR, 
+            expand=False, 
+            translate=(tx, ty),
+            fillcolor=0
+        )
 
-            # 3. NumPy Processing
-            img_np = np.array(img).astype(np.float32) / 255.0
+        # 3. NumPy Processing
+        img_np = np.array(img).astype(np.float32) / 255.0
             
-            # Normalizing to range [-1, 1]
-            img_np = (img_np - 0.5) / 0.5
+        # Normalizing to range [-1, 1]
+        img_np = (img_np - 0.5) / 0.5
             
-            # --- NEW: Append to our dataset ---
-            # We add a channel dimension so shape becomes (32, 32, 1)
-            img_np = np.expand_dims(img_np, axis=-1) 
+        # --- NEW: Append to our dataset ---
+        # We add a channel dimension so shape becomes (32, 32, 1)
+        img_np = np.expand_dims(img_np, axis=-1) 
             
-            all_images.append(img_np)
-            all_labels.append(int(label_folder)) # Assumes folder names are 0, 1, 2...
+        all_images.append(img_np)
+        all_labels.append(int(label_folder)) # Assumes folder names are 0, 1, 2...
 
-        except Exception as e:
-            print(f"Skipping {image_name}: {e}")
-
-# --- NEW: Final Conversion for CNN ---
+# 4. Convert lists to NumPy arrays and shuffle
 X = np.array(all_images)
 y = np.array(all_labels)
 
@@ -68,18 +64,18 @@ y = y[indices]
 
 split = int(0.8 * len(X))
 
-X_train = X[:split]
-y_train = y[:split]
+train_data = X[:split]
+train_labels = y[:split]
 
-X_val = X[split:]
-y_val = y[split:]
+test_data = X[split:]
+test_labels = y[split:]
 
 num_classes = len(np.unique(y))
 
-y_train = np.eye(num_classes)[y_train]
-y_val = np.eye(num_classes)[y_val]
+y_train = np.eye(num_classes)[train_labels]   # One-hot encoding pour bien marcher avec softmax et cross-entropy
+y_test = np.eye(num_classes)[test_labels]
 
-#start building CNN from scratch here using X_train, y_train, X_val, y_val
+#on commence à construire le CNN 
 
 def relu(x):
     return np.maximum(0, x)
@@ -92,7 +88,7 @@ def softmax(x):
     return exp / np.sum(exp)
 
 def cross_entropy(pred, label):
-    return -np.log(pred[label] + 1e-9)
+    return -np.log(pred[label] + 1e-9) #on ajoute un petit nombre pour éviter log(0)
 
 #convolution layer
 
@@ -100,18 +96,18 @@ class ConvLayer:
     def __init__(self, num_filters, filter_size):
         self.num_filters = num_filters
         self.filter_size = filter_size
-        self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))             
+        self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))  #j'utilise la méthode de He pour l'initialisation des poids
     def forward(self, input):
         self.input = input
         h, w = input.shape
-        output = np.zeros((h - self.filter_size + 1,
+        output = np.zeros((h - self.filter_size + 1,    #c'est juste les formules mathématiques pour calculer la taille de la sortie d'une convolution
                            w - self.filter_size + 1,
                            self.num_filters))
 
         for f in range(self.num_filters):
             for i in range(h - self.filter_size + 1):
                 for j in range(w - self.filter_size + 1):
-                    region = input[i:i+self.filter_size, j:j+self.filter_size]
+                    region = input[i:i+self.filter_size, j:j+self.filter_size,0] # mettre ,0 car c'est en grayscale et on a une seule channel
                     output[i, j, f] = np.sum(region * self.filters[f])
 
         return output

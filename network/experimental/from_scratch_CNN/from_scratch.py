@@ -93,10 +93,7 @@ def cross_entropy(pred, label):
 #convolution layer
 
 class ConvLayer:
-    learning_rate = 0.01 #possiblement le changer plus tard pour un optimiseur plus avancé
     def __init__(self, num_filters, filter_size):
-        num_filters = 16
-        filter_size = 3
         self.num_filters = num_filters
         self.filter_size = filter_size
         self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))  #j'utilise la méthode de He pour l'initialisation des poids
@@ -128,21 +125,33 @@ class ConvLayer:
 
         # Update filters
         self.filters -= learning_rate * derive_filters
-    return self.filters
+        return self.filters
     
-    def pooling_layer(self, input, size=2, stride=2):
-        input = self.forward_convolution()
-        self.pool_input = input
-        h, w, num_filters = input.shape
-        output_h = (h - size) // stride + 1
+    def pooling_layer(self, x, size=2, stride=2):
+        x = self.forward_convolution(num_filters=16, filter_size=3) #voir c<est quoi le resultat du conv layer pour faire le pooling
+        self.pool_input = x
+        h, w, num_filters = x.shape
+        output_h = (h - size) // stride + 1    
         output_w = (w - size) // stride + 1
         output = np.zeros((output_h, output_w, num_filters))
+
+        self.max_indices = [] # garder les indices des max pour la backprop
 
         for f in range(num_filters):
             for i in range(0, h - size + 1, stride):
                 for j in range(0, w - size + 1, stride):
-                    region = input[i:i+size, j:j+size, f]
-                    output[i//stride, j//stride, f] = np.max(region)
+
+                    region = x[i:i+size, j:j+size, f]
+
+                    max_index = np.unravel_index(np.argmax(region), region.shape) #unravel remet sous forme de "matrice 2d" les indices du max
+
+                    output[i//stride, j//stride, f] = region[max_index]
+
+                    # Save absolute position of max (for backprop)
+                    self.max_indices[(i//stride, j//stride, f)] = (
+                        i + max_index[0],
+                        j + max_index[1]
+                    )
 
         return output
 

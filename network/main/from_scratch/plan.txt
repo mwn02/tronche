@@ -1,0 +1,67 @@
+1. prendre nos images
+    a) Prendre les images des fichiers
+    b) Mélanger les images randomly
+    c) appliquer les random transformations
+    d) séparer en 4 listes
+        1. test images 20%
+        2. test images name (same index)
+        3. train images (randomely transformed)
+        4. train images (same index) 80%
+
+   
+
+2. Définir nos paramètres externes
+    - learning rate
+    - number of epochs
+    - size of mini-batch
+    - number of filters
+    - shape of filters
+    
+    - number of layers & number of neurones per layers
+        - the layers and number of neurones are defined in a numpy array: ex: [784, 300, 10] means 3 layers, with their respective number of neurones
+    - weights per layer (of interconnected layers): they are in a numpy array, with one less element than the layers
+        - ex: for layers [784, 300, 10], the weights would be [[array of 300 neurones each containing [array of 0s of size 784]], [array of 10 neurones each containing [array of 0s of size 300]]]
+        - the values of the weights can be initialized randomly (say between -1 and 1 randomly)
+    - bias
+        - ex: for layers [784, 300, 10], the bias would be [[array of 300 neurones each containing 0], [array of 10 neurones each containing 0]]
+
+
+3. Propagation avant
+    - start with a list containing values of the input layer val_input
+        - compute the activation values multiplie les matrices W1 et x0 et on ajoute la list b0,
+        on applique RelU pour ensuite append à une nouvelle liste qui store les val_hidden
+    -ensuite on multiplie matriciellement W2 en utilisant les index et val_hidden
+
+weights = np.array()
+weights[0, 34] = [1, 1, 2, 3,12 ,31,2 3,1,23 ,... 784 items]
+bias[1, 2] = 3 =>
+bias:
+[
+    [1, 2, 3, ... 300 neurones],
+    [12, 3, 3, ... 10 neurones]
+]
+
+-
+
+
+
+
+4. Propagation arrière
+    - we have
+        - a list containing all the activation values of each neurone
+        - the weighted sum of the each neurone of the final layer
+        - the derivative of our cost function
+        - the derivative of our activation function
+    - the goal: calculate the gradient nabla C of each weight and bias
+
+    a) the gradient of each param is stored in two list (for weights and bias):
+        - the gradient weight list has the same shape as the weights list (idem for bias)
+    a) calculate the final error (delta^L)
+        - create a final errors list
+        - for each final weighted sum:
+            - add to the final errors list: derivate of cost function * derivative of the weighted sum
+    b) propagate the final error to the previous layer, until the first one
+        - start at index L (final layer index), and go down to 0 (including 0):
+            - for each neurone `n` of layer `l`:
+                - for 
+     

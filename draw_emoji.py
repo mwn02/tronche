@@ -207,7 +207,7 @@ class EmojiDrawerApp:
 
 
 def main() -> int:
-		model_name = "model_98.6.pth"
+		model_name = "model_94.pth"
 		parser = argparse.ArgumentParser(description=f"Draw an emoji and test {model_name}.")
 		parser.add_argument(
 				"--model",

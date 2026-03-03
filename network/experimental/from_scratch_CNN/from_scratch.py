@@ -154,21 +154,3 @@ class ConvLayer:
                     )
 
         return output
-
-
- 
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-

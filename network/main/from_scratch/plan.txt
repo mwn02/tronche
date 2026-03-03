@@ -56,12 +56,14 @@ bias:
 
     a) the gradient of each param is stored in two list (for weights and bias):
         - the gradient weight list has the same shape as the weights list (idem for bias)
+    b) create a list containing the errors
+        - it is of the same shape as the biases
     a) calculate the final error (delta^L)
-        - create a final errors list
         - for each final weighted sum:
-            - add to the final errors list: derivate of cost function * derivative of the weighted sum
+            - add to the elements of the last layer of the the error list: 
+                derivate of cost function * derivative of the weighted sum
     b) propagate the final error to the previous layer, until the first one
         - start at index L (final layer index), and go down to 0 (including 0):
-            - for each neurone `n` of layer `l`:
-                - for 
-     
+            - gradient C of l = delta l * transpose(activation of l-1)
+            - gradient B of l = delta l
+        

@@ -27,11 +27,14 @@
 
 
 3. Propagation avant
+je crée toutes les fonctions 
+-softmax
+-relU
     - start with a list containing values of the input layer val_input
         - compute the activation values multiplie les matrices W1 et x0 et on ajoute la list b0,
         on applique RelU pour ensuite append à une nouvelle liste qui store les val_hidden
-    -ensuite on multiplie matriciellement W2 en utilisant les index et val_hidden
-
+    -ensuite on multiplie matriciellement W2 en utilisant les index et val_hidden et on ajoute bias et on applique relU()
+    - on doit storer les valeurs pour avoir les val_final_layer.
 weights = np.array()
 weights[0, 34] = [1, 1, 2, 3,12 ,31,2 3,1,23 ,... 784 items]
 bias[1, 2] = 3 =>
@@ -41,7 +44,7 @@ bias:
     [12, 3, 3, ... 10 neurones]
 ]
 
--
+-on prend la liste val_final_layer et on fait un forloop qui itère sur toutes les valeurs pour calculer le softmax
 
 
 

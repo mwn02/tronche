@@ -70,7 +70,7 @@ bias:
             - gradient C of l += delta l * transpose(activation of l-1)
             - gradient B of l += delta l
             - if not at layer 1: calculate error of the previous layer, delta l-1:
-                delta l-1 = transpose(weight of l) * delta of l * hadamard of (sigma (z of l))
+                delta l-1 = transpose(weight of l) * delta of l * hadamard of (sigma prime (z of l))
 
 Repeat 3. and 4. to add up each gradient values
 

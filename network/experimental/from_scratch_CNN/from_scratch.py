@@ -91,35 +91,54 @@ def cross_entropy(pred, label):
     return -np.log(pred[label] + 1e-9) #on ajoute un petit nombre pour éviter log(0)
 
 #convolution layer
+# --- FIX: Define variables before using them ---
+num_filters = 16
+filter_size = 3
 
 class ConvLayer:
     def __init__(self, num_filters, filter_size):
         self.num_filters = num_filters
         self.filter_size = filter_size
-        self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))  #j'utilise la méthode de He pour l'initialisation des poids
+        self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))
+
     def forward_convolution(self, input):
         self.input = input
-        h, w = input.shape
-        output = np.zeros((h - self.filter_size + 1,    #c'est juste les formules mathématiques pour calculer la taille de la sortie d'une convolution
-                           w - self.filter_size + 1,
+        # --- FIX: Must unpack 3 values (h, w, channels) ---
+        height, width, _ = input.shape 
+        
+        output = np.zeros((height - self.filter_size + 1,
+                           width - self.filter_size + 1,
                            self.num_filters))
 
         for f in range(self.num_filters):
-            for i in range(h - self.filter_size + 1):
-                for j in range(w - self.filter_size + 1):
-                    region = input[i:i+self.filter_size, j:j+self.filter_size,0] # mettre ,0 car c'est en grayscale et on a une seule channel
+            for i in range(height - self.filter_size + 1):
+                for j in range(width - self.filter_size + 1):
+                    region = input[i:i+self.filter_size, j:j+self.filter_size, 0]
                     output[i, j, f] = np.sum(region * self.filters[f])
-
         return output
-    
 
     def backward_convolution(self, d_output, learning_rate):
         derive_filters = np.zeros_like(self.filters)
-        h, w, _ = self.input.shape
+        height, width, _ = self.input.shape
 
         for f in range(self.num_filters):
-            for i in range(h - self.filter_size + 1):
-                for j in range(w - self.filter_size + 1):
+            for i in range(height - self.filter_size + 1):
+                for j in range(width - self.filter_size + 1):
+                    region = self.input[i:i+self.filter_size, j:j+self.filter_size, 0]
+                    derive_filters[f] += d_output[i, j, f] * region
+        
+        self.filters -= learning_rate * derive_filters
+        return self.filters
+
+    def backward_convolution(self, d_output, learning_rate):
+        input = ... ###########################################
+        self.input = input
+        derive_filters = np.zeros_like(self.filters)
+        height, width, _ = self.input.shape
+
+        for f in range(self.num_filters):
+            for i in range(height - self.filter_size + 1):
+                for j in range(width - self.filter_size + 1):
                     region = self.input[i:i+self.filter_size, j:j+self.filter_size,0]
                     derive_filters[f] += d_output[i, j, f] * region
 

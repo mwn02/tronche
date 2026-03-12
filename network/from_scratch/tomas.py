@@ -67,11 +67,11 @@ class ConvLayer:
         return None
     
 class MaxPoolingLayer: 
-    def __init__(self,pool_size):
+    def __init__(self,pool_size,stride=2):
         self.pool_size = pool_size
         self.input = None
         self.max_indices = None
-        self.stride = None
+        self.stride = 2
 
     def forward(self, input, stride):
         self.stride = stride
@@ -166,17 +166,6 @@ class DenseLayer:
         self.db_acc.fill(0)
         return self.weights, self.biases
 
-class Softmax: 
-    def __init__(self):
-        self.input = None
-    def forward(self,input): 
-        self.input = input
-        exp_z = np.exp(input)
-        return exp_z / (np.sum(exp_z))
-    def backward(self, incoming_error):
-        return incoming_error
-    def update(self, batch_size, learning_rate): 
-        return None
     
 class CrossEntropyLoss:
     def __init__(self): 
@@ -188,7 +177,7 @@ class CrossEntropyLoss:
         eps = 67e-12
         return -np.sum(real_value*np.log(predictions+eps))
     def backward(self, predictions,real_value):
-        return self.predictions - self.real_value
+        return predictions - real_value
     def update(self, batch_size, learning_rate): 
         return None
     
@@ -197,21 +186,21 @@ class CrossEntropyLoss:
 test_image = input_train[0]
 test_image = test_image.reshape(28, 28, 1) # reshape pour ajouter une dimension de canal
 layers = [
-    ConvLayer(8,3),
-    Relu(),
-    MaxPoolingLayer(2),
-    ConvLayer(16,3),
-    Relu(),
-    MaxPoolingLayer(2),
-    Flatten(),
+    ConvLayer(8,3), # output shape: 26x26x8
+    Relu(),         # output shape: 26x26x8
+    MaxPoolingLayer(2,stride=2), # output shape: 13x13x8
+    ConvLayer(16,3),   # output shape: 11x11x16
+    Relu(),            # output shape: 11x11x16
+    MaxPoolingLayer(2,stride=2), # output shape: 5x5x16
+    Flatten(),         # output shape: 400
     DenseLayer(400,100),
     Relu(),
     DenseLayer(100,10),
-    Softmax()
 ]
-softmax = Softmax()
 loss = CrossEntropyLoss()
-
+def softmax(x):
+    e_x = np.exp(x - np.max(x))  # Subtract max for numerical stability
+    return e_x / e_x.sum(axis=0)
 
 for epoch in range(num_epochs):
 
@@ -244,12 +233,13 @@ for epoch in range(num_epochs):
                     x = layer.forward(x)
                     print(f"Layer {type(layer).__name__} output shape: {x.shape}")
 
-            predictions = x
+            predictions = softmax(x)
             loss_value = loss.forward(predictions,label)
             error = loss.backward(predictions,label)
 
             for layer in reversed(layers):
                 error = layer.backward(error)
+                print(f"Layer {type(layer).__name__} output shape after backward: {error.shape}")
 
         for layer in layers: 
             layer.update(batch_size, learning_rate)

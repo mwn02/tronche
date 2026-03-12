@@ -23,6 +23,10 @@ class ConvLayer:
         self.filter_size = filter_size
         self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))
         self.biases = np.zeros(num_filters)
+        self.bias_gradients = np.zeros_like(self.biases)
+        self.filter_weights_gradients = np.zeros_like(self.filters)
+
+
     def forward(self, input_train):
         self.input = input_train
         height, width, _ = input_train.shape 
@@ -37,9 +41,29 @@ class ConvLayer:
                     region = input_train[i:i+self.filter_size, j:j+self.filter_size, 0]
                     output[i, j, f] = np.sum(region * self.filters[f]) + self.biases[f]
         return output
-    def backward(self, ): #############################################################
-        return None
-    def update(self, batch_size, learning_rate):  #############################################
+    
+
+    def backward(self, incoming_error): 
+        incoming_error_height, incoming_error_width, num_filters = incoming_error.shape[0], incoming_error.shape[1], incoming_error.shape[2]
+        previous_layer_error = np.zeros_like(self.input)
+        for f in range(num_filters):
+            self.bias_gradients[f] += np.sum(incoming_error[:, :, f])
+            for i in range(self.filter_size):
+                for j in range(self.filter_size):
+                    region = self.input[i:i+incoming_error_height, j:j+incoming_error_width, 0]
+                    self.filter_weights_gradients[f, i, j] += np.sum(region * incoming_error[:, :, f])
+            for i in range(incoming_error_height):
+                for j in range(incoming_error_width):
+                    previous_layer_error[i:i+self.filter_size, j:j+self.filter_size, 0] += self.filters[f] * incoming_error[i, j, f]
+        return previous_layer_error         
+    
+    def update(self, batch_size, learning_rate):  
+        self.filters -= (learning_rate / batch_size) * self.filter_weights_gradients
+        self.biases -= (learning_rate / batch_size) * self.bias_gradients
+        
+
+        self.filter_weights_gradients.fill(0)
+        self.bias_gradients.fill(0)
         return None
     
 class MaxPoolingLayer: 
@@ -47,8 +71,10 @@ class MaxPoolingLayer:
         self.pool_size = pool_size
         self.input = None
         self.max_indices = None
+        self.stride = none
 
     def forward(self, input, stride):
+        self.stride = stride
         self.input = input
         height, width, num_filters = input.shape
         output = np.zeros(((height-self.pool_size) // stride + 1, (width-self.pool_size) // stride + 1, num_filters))
@@ -60,11 +86,23 @@ class MaxPoolingLayer:
                     max_index = region.argmax()
                     output_i, output_j = i // stride, j // stride
                     output[output_i, output_j, filters] = np.max(region)
-                    self.max_indices[output_i, output_j, filters] = max_index               # [0,1], [2,3] sont les valeurs que prendraient les indices max
+                    self.max_indices[output_i, output_j, filters] = max_index    # [0,1], [2,3] sont les valeurs que prendraient les indices max
         return output
-    def backward(self, ): ###########################################################
-        return None
-    def update(self, batch_size, learning_rate):   ####################
+    def backward(self,incoming_error):  
+        num_filters = self.input.shape[2]
+        error_input = np.zeros_like(self.input)
+
+        error_input = np.zeros_like(self.input)
+        for filters in range(num_filters): 
+            for i in range(incoming_error.shape[0]):
+                for j in range(incoming_error.shape[1]):
+                    max_index = self.max_indices[i, j, filters]
+                    input_i = i * self.stride + max_index // self.pool_size
+                    input_j = j * self.stride + max_index % self.pool_size
+                    error_input[input_i, input_j, filters] += incoming_error[i, j, filters]
+        return error_input
+    
+    def update(self, batch_size, learning_rate):   
         return None
     
 class Relu: 
@@ -104,19 +142,22 @@ class DenseLayer:
         self.input = input
         return self.weights @ self.input + self.biases
     
-    def backward(self,incoming_error):
-        self.incoming_error = incoming_error
-        error_collumn_vector = incoming_error.reshape(-1,1)
-        input_row_vector = self.input.reshape(1,-1)
-        weight_gradient = error_collumn_vector@input_row_vector
+    def backward(self, incoming_error):
+        error_column_vector = incoming_error.reshape(-1, 1)
+        input_row_vector = self.input.reshape(1, -1)
+        
+        # Calculate gradients for this specific image
+        weight_gradient = error_column_vector @ input_row_vector
         bias_gradient = incoming_error
-        previous_layer_error = self.weights.T @ incoming_error
-        return previous_layer_error,bias_gradient, weight_gradient
-    
-    def accumulate_gradients(self,weight_gradient,bias_gradient): 
+        
+        # ACCUMULATE: This is the secret sauce for batching
         self.dw_acc += weight_gradient
         self.db_acc += bias_gradient
-        return self.dw_acc, self.db_acc
+        
+        # Pass the error to the previous layer
+        previous_layer_error = self.weights.T @ incoming_error
+        return previous_layer_error
+    
     def update(self, batch_size, learning_rate): 
         self.weights -= (learning_rate/batch_size) *self.dw_acc
         self.biases -= (learning_rate/batch_size) * self.db_acc
@@ -176,23 +217,34 @@ for epoch in range(num_epochs):
     input_train_shuffled = input_train[perm]
     label_train_shuffled = label_train[perm]
 
-    for i in range(len(input_train)):
-        image = input_train_shuffled[i].reshape(28,28,1)
-        x = image
-        label = one_hot(label_train_shuffled[i],10) 
+    for i in range(0, len(input_train), batch_size):
+        start = i
+        end = min(i + batch_size, len(input_train))      
+        real_batch_size = end - start
+        batch_input = input_train_shuffled[start:end]
+        batch_labels = label_train_shuffled[start:end]
+        for j in range(real_batch_size):
+            image = batch_input[j].reshape(28,28,1)
 
-        for layer in layers:
-            x = layer.forward(x)
+            def one_hot(label, num_classes):
+                one_hot_vector = np.zeros(num_classes)
+                one_hot_vector[label] = 1
+                return one_hot_vector
+            
+            label = one_hot(batch_labels[j],10)
 
-        predictions = softmax.forward(x)
-        loss_value = loss.forward(predictions,label)
-        error = loss.backward(predictions,label)
+            for layer in layers:
+                x = layer.forward(x)
 
-        for layer in reversed(layers):
-            error = layer.backward(error)
+            predictions = softmax.forward(x)
+            loss_value = loss.forward(predictions,label)
+            error = loss.backward(predictions,label)
 
-        for layer in layers: 
-            layer.update(batch_size, learning_rate)
+            for layer in reversed(layers):
+                error = layer.backward(error)
+
+            for layer in layers: 
+                layer.update(batch_size, learning_rate)
 
     print(f"Epoch {epoch} done")
 

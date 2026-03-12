@@ -202,6 +202,30 @@ def softmax(x):
     e_x = np.exp(x - np.max(x))  # Subtract max for numerical stability
     return e_x / e_x.sum(axis=0)
 
+def test_model(input_test, label_test, layers):
+    correct_predictions = 0
+    for i in range(len(input_test)):
+        image = input_test[i].reshape(28, 28, 1)
+        # Handle if label is one-hot or an integer
+        if isinstance(label_test[i], np.ndarray) and label_test[i].size > 1:
+            true_label = np.argmax(label_test[i])
+        else:
+            true_label = int(label_test[i])
+
+        x = image
+        for layer in layers:
+            # Stride is required for your MaxPooling forward method
+            if isinstance(layer, MaxPoolingLayer):
+                x = layer.forward(x, stride=2)
+            else:
+                x = layer.forward(x)
+
+        if np.argmax(softmax(x)) == true_label:
+            correct_predictions += 1
+
+    return correct_predictions / len(input_test)
+
+
 for epoch in range(num_epochs):
 
     perm = np.random.permutation(len(input_train))
@@ -222,47 +246,41 @@ for epoch in range(num_epochs):
                 labels = np.array(labels).astype(int)
                 return np.eye(num_classes)[labels]
             
-            label = one_hot(batch_labels[j],10)
+            label = batch_labels[j].flatten() 
+
+            # Double check the shape is (10,)
+            if label.shape[0] != 10:
+                # If it's still an integer, THEN one-hot encode it
+                label = np.eye(10)[int(batch_labels[j])]
             x=image
 
             for layer in layers:
                 if isinstance(layer, MaxPoolingLayer):
                     x = layer.forward(x, stride=2) # Added stride=2
-                    print(f"Layer {type(layer).__name__} output shape: {x.shape}")
                 else:
                     x = layer.forward(x)
-                    print(f"Layer {type(layer).__name__} output shape: {x.shape}")
-
+                    
             predictions = softmax(x)
+            predictions.reshape(-1,1)   #colone vector des predictions 
+            
             loss_value = loss.forward(predictions,label)
             error = loss.backward(predictions,label)
+            
 
             for layer in reversed(layers):
                 error = layer.backward(error)
-                print(f"Layer {type(layer).__name__} output shape after backward: {error.shape}")
+                
 
         for layer in layers: 
             layer.update(batch_size, learning_rate)
 
-    print(f"Epoch {epoch} done")
+        print(f"\rEpoch {epoch+1} | Batch {i//batch_size + 1} processing...", end="")
+        
 
-    def test_model(input_test, label_test):
-        correct_predictions = 0
-        x=image
-        for i in range(len(input_test)):
-            image = input_test[i].reshape(28,28,1)
-            label = label_test[i]
+    accuracy = test_model(input_test, label_test,layers)
+    print(f"\nEpoch {epoch+1} Done! Test Accuracy: {accuracy*100:.2f}%")
 
-            x = image
-            for layer in layers:
-                x = layer.forward(x)
-
-            predicted_label = np.argmax(x)
-            if predicted_label == label:
-                correct_predictions += 1
-
-        accuracy = correct_predictions / len(input_test)
-        print(f"Test Accuracy: {accuracy*100:.2f}%")
+    
 
 
 

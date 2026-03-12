@@ -13,6 +13,7 @@ input_test = input_test[:100]
 label_test = label_test[:100]
 learning_rate = 0.01
 batch_size = 32
+num_epochs = 20 
 class ConvLayer:
     def __init__(self, num_filters, filter_size):
         self.num_filters = num_filters
@@ -106,24 +107,10 @@ class DenseLayer:
     def update_weights_and_biases(self, batch_size, learning_rate): 
         self.weights -= (learning_rate/batch_size) *self.dw_acc
         self.biases -= (learning_rate/batch_size) * self.db_acc
-        
+
         self.dw_acc.fill(0)
         self.db_acc.fill(0)
         return self.weights, self.biases
-
-
-
-        
-        
-
-
-        
-
-
-        
-        
-
-
 
 class Softmax: 
     def __init__(self):
@@ -160,20 +147,35 @@ denselayer1 = DenseLayer(400,100)
 relu_hidden1 = Relu()
 denselayer2 = DenseLayer(100,10)
 softmax = Softmax()
+lossfn = CrossEntropyLoss()
 
 
-conv_output1 = conv_layer1.forward(test_image)
-relu_output1 = relu1.forward(conv_output1)
-pool_output1 = pool_layer1.forward(relu_output1, stride=2)
-conv_output2 = conv_layer2.forward(pool_output1)
-relu_output2 = relu2.forward(conv_output2)
-pool_output2 = pool_layer2.forward(relu_output2, stride=2)
-flattened_output = flattened.forward(pool_output2)
-denselayer_output1 = denselayer1.forward(flattened_output)
-relu_hidden_output1 = relu_hidden1.forward(denselayer_output1)
-denselayer_output2 = denselayer2.forward(relu_hidden_output1)
-predictions = softmax.forward(denselayer_output2)
 
-print(predictions)
+for epoch in range(num_epochs): 
+    perm = np.random.permutation(len(input_train))
+    input_train_shuffled = input_train[perm]
+    label_train_shuffled = label_train[perm]
+    for i in range(0, len(input_train), batch_size):
+        real_values = one_hot(label_train[i], 10) # one-hot encoding de la vraie étiquette
 
-real_value = 
+
+
+        conv_output1 = conv_layer1.forward(test_image)
+        relu_output1 = relu1.forward(conv_output1)
+        pool_output1 = pool_layer1.forward(relu_output1, stride=2)
+        conv_output2 = conv_layer2.forward(pool_output1)
+        relu_output2 = relu2.forward(conv_output2)
+        pool_output2 = pool_layer2.forward(relu_output2, stride=2)
+        flattened_output = flattened.forward(pool_output2)
+        denselayer_output1 = denselayer1.forward(flattened_output)
+        relu_hidden_output1 = relu_hidden1.forward(denselayer_output1)
+        denselayer_output2 = denselayer2.forward(relu_hidden_output1)
+        predictions = softmax.forward(denselayer_output2)
+        error_output = lossfn.backward(predictions, real_values)  #find out how to get the real value
+        denselayer_output2_gradient, denselayer_output2_bias_gradient, relu_hidden_output1_error = denselayer2.backward(error_output)
+        denselayer2.batch_backwards(denselayer_output2_gradient, denselayer_output2_bias_gradient)
+        denselayer2.update_weights_and_biases(batch_size, learning_rate)
+
+
+incoming_error = 
+ 

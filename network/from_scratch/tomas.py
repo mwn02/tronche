@@ -3,6 +3,7 @@ from email.mime import image
 
 import numpy as np
 import math
+from network.experimental.from_scratch_CNN.from_scratch import relu_derivative
 from network.from_scratch.data_processing import load_mnist_data
 
 # Pour exécuter le script, taper dans le terminal: py -m network.from_scratch.tomas
@@ -72,8 +73,10 @@ class Relu:
     def forward(self, input):
         self.input = input
         return np.maximum(0, self.input)
-    def backward(self, ): ###############################################################
-        return None
+    def backward(self, incoming_error):
+        relu_derivative = (self.input > 0).astype(float)
+        return incoming_error * relu_derivative
+
     def update(self, batch_size, learning_rate): 
         return None
 
@@ -108,7 +111,7 @@ class DenseLayer:
         weight_gradient = error_collumn_vector@input_row_vector
         bias_gradient = incoming_error
         previous_layer_error = self.weights.T @ incoming_error
-        return weight_gradient,bias_gradient,previous_layer_error
+        return previous_layer_error,bias_gradient, weight_gradient
     
     def accumulate_gradients(self,weight_gradient,bias_gradient): 
         self.dw_acc += weight_gradient
@@ -187,6 +190,8 @@ for epoch in range(num_epochs):
 
         for layer in reversed(layers):
             error = layer.backward(error)
+
+        for layer in layers: 
             layer.update(batch_size, learning_rate)
 
     print(f"Epoch {epoch} done")

@@ -156,7 +156,7 @@ for epoch in range(num_epochs):
     input_train_shuffled = input_train[perm]
     label_train_shuffled = label_train[perm]
     for i in range(0, len(input_train), batch_size):
-        real_values = one_hot(label_train[i], 10) # one-hot encoding de la vraie étiquette
+        real_values = one_hot(label_train[i], 10, training=True) # one-hot encoding de la vraie étiquette
 
 
 
@@ -175,6 +175,11 @@ for epoch in range(num_epochs):
         denselayer_output2_gradient, denselayer_output2_bias_gradient, relu_hidden_output1_error = denselayer2.backward(error_output)
         denselayer2.batch_backwards(denselayer_output2_gradient, denselayer_output2_bias_gradient)
         denselayer2.update_weights_and_biases(batch_size, learning_rate)
+
+
+        if training:
+            print(f"Epoch {epoch} done")
+
 
 
 incoming_error = 

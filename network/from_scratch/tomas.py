@@ -12,7 +12,7 @@ label_train = label_train[:300]
 input_test = input_test[:100]
 label_test = label_test[:100]
 learning_rate = 0.01
-
+batch_size = 32
 class ConvLayer:
     def __init__(self, num_filters, filter_size):
         self.num_filters = num_filters
@@ -33,7 +33,8 @@ class ConvLayer:
                     region = input_train[i:i+self.filter_size, j:j+self.filter_size, 0]
                     output[i, j, f] = np.sum(region * self.filters[f]) + self.biases[f]
         return output
-    def backwards(self, )
+    def backwards(self, ): 
+        return None
     
 class MaxPoolingLayer: 
     def __init__(self,pool_size):
@@ -54,9 +55,9 @@ class MaxPoolingLayer:
                     output_i, output_j = i // stride, j // stride
                     output[output_i, output_j, filters] = np.max(region)
                     self.max_indices[output_i, output_j, filters] = max_index               # [0,1], [2,3] sont les valeurs que prendraient les indices max
-                    print(max_index)
         return output
-    def backwards(self, )
+    def backwards(self, ): 
+        return None
     
 class Relu: 
     def __init__(self):
@@ -64,7 +65,8 @@ class Relu:
     def forward(self, input):
         self.input = input
         return np.maximum(0, self.input)
-    def backwards(self, )
+    def backwards(self, ): 
+        return None
 
 class Flatten:
     def __init__(self):
@@ -72,7 +74,8 @@ class Flatten:
     def forward(self, input):
         self.input_shape = input.shape
         return input.flatten()
-    def backwards(self, )
+    def backwards(self, incoming_error ): 
+        return incoming_error.reshape(self.input_shape)
     
 class DenseLayer:
     def __init__(self,input_size, output_size):
@@ -81,12 +84,39 @@ class DenseLayer:
         self.weights = np.random.randn(output_size, input_size) * np.sqrt(2/ input_size)
         self.biases = np.zeros(output_size)
         self.error = None
-        self.learning_rate = learning_rate
+        self.dw_acc = np.zeros_like(self.weights) #pour faire l'accumulation de l'erreur sur les poids
+        self.db_acc = np.zeros_like(self.biases)  # pour faire l'accumulation de l'erreur sur les biais
     def forward(self, input):
         self.input = input
         return self.weights @ self.input + self.biases
-    def backward(self,incoming_error,learning_rate)
+    
+    def backward(self,incoming_error):
         self.incoming_error = incoming_error
+        error_collumn_vector = incoming_error.reshape(-1,1)
+        input_row_vector = self.input.reshape(1,-1)
+        weight_gradient = error_collumn_vector@input_row_vector
+        bias_gradient = incoming_error
+        previous_layer_error = self.weights.T @ incoming_error
+        return weight_gradient,bias_gradient,previous_layer_error
+    
+    def batch_backwards(self,weight_gradient,bias_gradient): 
+        self.dw_acc += weight_gradient
+        self.db_acc += bias_gradient
+        return self.dw_acc, self.db_acc
+    def update_weights_and_biases(self, batch_size, learning_rate): 
+        self.weights -= (learning_rate/batch_size) *self.dw_acc
+        self.biases -= (learning_rate/batch_size) * self.db_acc
+        
+        self.dw_acc.fill(0)
+        self.db_acc.fill(0)
+        return self.weights, self.biases
+
+
+
+        
+        
+
+
         
 
 
@@ -114,10 +144,8 @@ class CrossEntropyLoss:
         return -np.sum(real_value*np.log(predictions+eps))
     def backward(self, predictions,real_value):
         return self.predictions - self.real_value
-
-
     
-    
+
 
 test_image = input_train[0]
 test_image = test_image.reshape(28, 28, 1) # reshape pour ajouter une dimension de canal
@@ -128,6 +156,11 @@ conv_layer2 = ConvLayer(16,3)
 relu2 = Relu()
 pool_layer2 = MaxPoolingLayer(2)
 flattened = Flatten()
+denselayer1 = DenseLayer(400,100)
+relu_hidden1 = Relu()
+denselayer2 = DenseLayer(100,10)
+softmax = Softmax()
+
 
 conv_output1 = conv_layer1.forward(test_image)
 relu_output1 = relu1.forward(conv_output1)
@@ -136,5 +169,11 @@ conv_output2 = conv_layer2.forward(pool_output1)
 relu_output2 = relu2.forward(conv_output2)
 pool_output2 = pool_layer2.forward(relu_output2, stride=2)
 flattened_output = flattened.forward(pool_output2)
+denselayer_output1 = denselayer1.forward(flattened_output)
+relu_hidden_output1 = relu_hidden1.forward(denselayer_output1)
+denselayer_output2 = denselayer2.forward(relu_hidden_output1)
+predictions = softmax.forward(denselayer_output2)
 
-print("flattened_output shape:", flattened_output.shape) # ca devrait être (400,) pour une image d'entrée de 28x28 avec les couches définies ci-dessus
+print(predictions)
+
+real_value = 

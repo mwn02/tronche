@@ -1,6 +1,6 @@
 
-from email.mime import image
 import json
+import time
 import numpy as np
 from network.experimental.from_scratch_CNN.from_scratch import relu_derivative
 from network.from_scratch.data_processing import load_mnist_data
@@ -80,7 +80,6 @@ class MaxPoolingLayer:
         num_filters = self.input.shape[2]
         error_input = np.zeros_like(self.input)
 
-        error_input = np.zeros_like(self.input)
         for filters in range(num_filters): 
             for i in range(incoming_error.shape[0]):
                 for j in range(incoming_error.shape[1]):
@@ -234,6 +233,11 @@ def softmax(x):
     e_x = np.exp(x - np.max(x))  # Subtract max for numerical stability
     return e_x / e_x.sum(axis=0)
 
+def one_hot(labels, num_classes):
+# Ensure labels is a NumPy array of integers
+    labels = np.array(labels).astype(int)
+    return np.eye(num_classes)[labels]
+
 if __name__ == "__main__":
     # Pour exécuter le script, taper dans le terminal: py -m network.from_scratch.tomas
     #X, y = get_emoji_data("dataset/dataset-data/training-data/")
@@ -251,7 +255,7 @@ if __name__ == "__main__":
     # paramètres
     learning_rate = 0.01
     batch_size = 32
-    num_epochs = 20
+    num_epochs = 10
 
     # réseau
     test_image = input_train[0]
@@ -268,8 +272,17 @@ if __name__ == "__main__":
         Relu(),
         DenseLayer(100,10),
     ]
+    # layers = [
+    #     Flatten(),         # output shape: 400
+    #     DenseLayer(28*28, 512),
+    #     Relu(),
+    #     DenseLayer(512, 128),
+    #     Relu(),
+    #     DenseLayer(128,10),
+    # ]
     loss = CrossEntropyLoss()
-
+    
+    timestamp = time.time()
     # entrainement par époques
     for epoch in range(num_epochs):
         # mélanger les données
@@ -286,20 +299,13 @@ if __name__ == "__main__":
             batch_labels = label_train_shuffled[start:end]
             # entrainement d'un mini-lot
             for j in range(real_batch_size):
-                image = batch_input[j].reshape(28,28,1)
-
-                def one_hot(labels, num_classes):
-                # Ensure labels is a NumPy array of integers
-                    labels = np.array(labels).astype(int)
-                    return np.eye(num_classes)[labels]
-                
+                x = batch_input[j].reshape(28,28,1) # x est l'image
                 label = batch_labels[j].flatten() 
 
                 # Double check the shape is (10,)
                 if label.shape[0] != 10:
                     # If it's still an integer, THEN one-hot encode it
                     label = np.eye(10)[int(batch_labels[j])]
-                x=image
 
                 for layer in layers:
                     if isinstance(layer, MaxPoolingLayer):
@@ -310,8 +316,8 @@ if __name__ == "__main__":
                 predictions = softmax(x)
                 predictions.reshape(-1,1)   #colone vector des predictions 
                 
-                loss_value = loss.forward(predictions,label)
-                error = loss.backward(predictions,label)
+                loss_value = loss.forward(predictions, label)
+                error = loss.backward(predictions, label)
                 
                 # rétropropagation
                 for layer in reversed(layers):
@@ -319,10 +325,11 @@ if __name__ == "__main__":
                     
             # fin de l'entrainement d'un mini-lot: descente du gradient
             for layer in layers: 
-                layer.update(batch_size, learning_rate)
+                layer.update(batch_size, learning_rate) # not real_batch_size??
 
             print(f"\rEpoch {epoch+1} | Batch {i//batch_size + 1} processing...", end="")
         
         # tester le modèle
         accuracy = test_model(input_test, label_test,layers)
         print(f"\nEpoch {epoch+1} Done! Test Accuracy: {accuracy*100:.2f}%")
+    print(f"finished in {time.time() - timestamp}")

@@ -472,3 +472,10 @@ def set_layer_params(layers, params):
 if __name__ == "__main__":
     main()
     
+#graphiques/images intéressants à mettre. En choisir 
+#courbe d'apprentissage 
+#matrice de confusion 
+#accuracy par classe 
+
+#Grad-CAM    (heatmap of important features)
+#t-SNE clusters 

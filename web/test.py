@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT_DIR))
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
-from network.main.network import Network
+from network.with_pytorch.network import Network
 
 app = FastAPI()
 

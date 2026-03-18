@@ -513,44 +513,97 @@
             #sidebar {
                 width: 100%;
                 height: auto;
-                flex-direction: row;
-                justify-content: space-between;
-                padding: 10px 12px;
+                flex-direction: column;
+                padding: 8px 12px 10px;
                 box-sizing: border-box;
-                display: flex;
-                flex-wrap: wrap;
-                overflow: hidden;
+                overflow: visible;
+                box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
             }
 
-
-            .logo-area, .control-group { margin: 0; }
-
-            h1 { font-size: 18px; }
+            /* Hide logo to save space */
+            .logo-area { display: none; }
 
             .tagline, .toggle-row label { display: none; }
 
+            /* Tools row: palette + eraser/erase all in one horizontal line */
+            .control-group {
+                margin: 0;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .control-group > label { display: none; }
+
+            .palette {
+                display: flex;
+                flex-direction: row;
+                gap: 4px;
+                margin-bottom: 0;
+                flex-wrap: nowrap;
+            }
+
+            .color-swatch {
+                width: 24px;
+                height: 24px;
+            }
+
+            .action-row {
+                margin-bottom: 0;
+                flex-shrink: 0;
+            }
+
+            .action-row .tool-btn {
+                padding: 6px 8px;
+                font-size: 12px;
+                margin-bottom: 0;
+            }
+
+            /* Results row: emoji + feedback in one horizontal line */
             #results-area {
                 min-height: auto;
                 flex-direction: row;
-                gap: 14px;
-                order: 2;
-                width: 100%;
-                justify-content: space-between;
                 align-items: center;
+                justify-content: flex-start;
+                gap: 10px;
+                margin-top: 6px;
             }
 
-            #feedback-area { margin-top: 0; }
+            #main-guess { font-size: 40px; margin: 0; }
 
-            #main-guess { font-size: 38px; margin: 0; }
+            #feedback-area {
+                margin-top: 0;
+                gap: 6px;
+            }
+
+            #feedback-area .btn {
+                padding: 5px 10px;
+                font-size: 12px;
+            }
 
             #advanced-stats { display: none !important; }
 
+            /* Hide session stats on mobile — too cramped */
+            #session-stats { display: none; }
+
+            /* Reposition settings button for toolbar layout */
+            .settings-btn {
+                top: 8px;
+                right: 8px;
+            }
+
+            /* Correction UI floats above the toolbar into the canvas area */
             #correction-ui {
                 position: absolute;
                 bottom: 100%;
+                left: 0;
+                right: 0;
                 background: var(--surface-color);
-                padding: 10px;
-                border-radius: 8px;
+                padding: 10px 12px;
+                border-radius: 8px 8px 0 0;
+                margin-top: 0;
+                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
             }
         }
     </style>

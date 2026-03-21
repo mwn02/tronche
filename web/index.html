@@ -510,47 +510,117 @@
         @media (max-width: 768px) {
             body { flex-direction: column-reverse; }
 
+            /* Bottom toolbar: column layout with 3 rows */
             #sidebar {
                 width: 100%;
-                height: auto;
-                flex-direction: row;
-                justify-content: space-between;
-                padding: 10px 12px;
+                flex-shrink: 0;
+                flex-direction: column;
+                padding: 10px 14px;
+                padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
                 box-sizing: border-box;
-                display: flex;
-                flex-wrap: wrap;
-                overflow: hidden;
+                overflow: visible;
+                gap: 8px;
+                box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.15);
             }
 
-
-            .logo-area, .control-group { margin: 0; }
-
-            h1 { font-size: 18px; }
-
+            /* Hide desktop-only elements */
+            .logo-area { display: none; }
             .tagline, .toggle-row label { display: none; }
-
-            #results-area {
-                min-height: auto;
-                flex-direction: row;
-                gap: 14px;
-                order: 2;
-                width: 100%;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            #feedback-area { margin-top: 0; }
-
-            #main-guess { font-size: 38px; margin: 0; }
-
             #advanced-stats { display: none !important; }
 
+            /* ── Row 1: emoji + feedback (order 1, top of toolbar) ── */
+            #results-area {
+                order: 1;
+                flex-grow: 0;
+                min-height: auto;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 12px;
+            }
+
+            #main-guess {
+                font-size: 48px;
+                margin: 0;
+                flex-shrink: 0;
+                line-height: 1;
+            }
+
+            #feedback-area {
+                margin-top: 0;
+                gap: 8px;
+            }
+
+            #feedback-area .btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+
+            /* ── Row 2: palette + tool buttons (order 2) ── */
+            .control-group {
+                order: 2;
+                margin: 0;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .control-group > label { display: none; }
+
+            /* Palette stretches to fill remaining width */
+            .palette {
+                flex: 1;
+                display: flex;
+                gap: 5px;
+                margin-bottom: 0;
+            }
+
+            /* Each swatch gets an equal share — no overflow */
+            .color-swatch {
+                flex: 1;
+                min-width: 0;
+                width: auto;
+                height: 28px;
+            }
+
+            .action-row {
+                flex-shrink: 0;
+                margin-bottom: 0;
+                gap: 6px;
+            }
+
+            .action-row .tool-btn {
+                padding: 5px 8px;
+                font-size: 12px;
+                margin-bottom: 0;
+                white-space: nowrap;
+            }
+
+            /* ── Row 3: session stats compact (order 3, bottom of toolbar) ── */
+            #session-stats {
+                order: 3;
+                margin-top: 0;
+                border-top: none;
+                padding-top: 0;
+                font-size: 11px;
+                text-align: center;
+            }
+
+            /* Settings button repositioned for toolbar */
+            .settings-btn { top: 10px; right: 14px; }
+
+            /* Correction UI floats up into the canvas area */
             #correction-ui {
                 position: absolute;
                 bottom: 100%;
+                left: 0;
+                right: 0;
                 background: var(--surface-color);
-                padding: 10px;
-                border-radius: 8px;
+                padding: 10px 14px;
+                border-radius: 8px 8px 0 0;
+                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+                margin-top: 0;
             }
         }
     </style>

@@ -53,7 +53,7 @@ for t in range(epochs):
     model.train_model(train_dataloader, loss_fn, optimizer)
     
     # This now captures the average loss returned by the network
-    current_test_loss = model.test_model(test_dataloader, loss_fn)
+    current_test_loss, _ = model.test_model(test_dataloader, loss_fn)
     
     # Update the learning rate based on performance
     scheduler.step(current_test_loss)

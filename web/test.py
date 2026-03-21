@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT_DIR))
 import torch
 import torchvision.transforms as transforms
 from PIL import Image
-from network.main.network import Network
+from network.with_pytorch.network import Network
 
 app = FastAPI()
 
@@ -27,6 +27,10 @@ app.mount("/icons", StaticFiles(directory=Path(__file__).parent / "icons"), name
 # Data storage path
 DATA_DIR = ROOT_DIR / "data" / "temp"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+# Staging folder for collected training samples (PNG 32x32, ready to import into training dataset)
+COLLECTED_DIR = ROOT_DIR / "data" / "collected"
+COLLECTED_DIR.mkdir(parents=True, exist_ok=True)
 
 # Session stats
 stats = {
@@ -40,7 +44,7 @@ EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 # Load trained model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Network(device)
-model_path = ROOT_DIR / "network" / "saved_models" / "model_98.6.pth"
+model_path = ROOT_DIR / "network" / "saved_models" / "model_94.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()
 print(f"Model loaded from {model_path} on {device}")
@@ -53,17 +57,23 @@ inference_transform = transforms.Compose([
     transforms.Normalize(mean=[0.5], std=[0.5]),
 ])
 
-def predict(image_base64: str) -> dict:
+def predict(image_base64: str) -> tuple[dict, bytes]:
+    """Run inference on a base64-encoded PNG. Returns (sorted_probs, png_32x32_bytes)."""
     image_bytes = base64.b64decode(image_base64)
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     # Save last received image for debugging
     image.save(ROOT_DIR / "data" / "debug_last_received.png")
+    # Produce a 32x32 grayscale PNG for staging (mirrors training data format)
+    img_32 = image.convert("L").resize((32, 32), Image.LANCZOS)
+    buf = io.BytesIO()
+    img_32.save(buf, format="PNG")
+    png_bytes = buf.getvalue()
     tensor = inference_transform(image).unsqueeze(0).to(device)
     with torch.no_grad():
         logits = model(tensor)
         probabilities = torch.softmax(logits, dim=1)[0]
     probs = {emoji: round(probabilities[i].item(), 4) for i, emoji in enumerate(EMOJIS)}
-    return dict(sorted(probs.items(), key=lambda item: item[1], reverse=True))
+    return dict(sorted(probs.items(), key=lambda item: item[1], reverse=True)), png_bytes
 
 
 # Serve the drawing page at the root URL
@@ -76,6 +86,9 @@ async def get_index():
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("iPad connected.")
+
+    # Cache the last processed 32x32 PNG per connection for staging on feedback
+    last_image_bytes: bytes | None = None
 
     # Send initial stats
     await websocket.send_json({"type": "stats", "data": stats})
@@ -101,12 +114,21 @@ async def websocket_endpoint(websocket: WebSocket):
                         json.dump(vectors, f)
                     print(f"Saved {label} to {file_path}")
 
+                # Save the 32x32 PNG to the staging folder
+                if label and last_image_bytes:
+                    ts = int(time.time() * 1000)
+                    collected_path = COLLECTED_DIR / label
+                    collected_path.mkdir(parents=True, exist_ok=True)
+                    with open(collected_path / f"{ts}.png", "wb") as f:
+                        f.write(last_image_bytes)
+                    print(f"Collected {label} → {collected_path / f'{ts}.png'}")
+
                 await websocket.send_json({"type": "stats", "data": stats})
                 continue
 
             # Handle canvas image for prediction
             if message.get("type") == "image":
-                sorted_probs = predict(message["data"])
+                sorted_probs, last_image_bytes = predict(message["data"])
                 top_guess = list(sorted_probs.keys())[0]
                 await websocket.send_json({
                     "type": "guess",

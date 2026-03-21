@@ -206,8 +206,7 @@ class EmojiDrawerApp:
 				self.root.mainloop()
 
 
-def main() -> int:
-		model_name = "model_94.pth"
+def main(model_name) -> int:
 		parser = argparse.ArgumentParser(description=f"Draw an emoji and test {model_name}.")
 		parser.add_argument(
 				"--model",
@@ -244,4 +243,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-		raise SystemExit(main())
+		raise SystemExit(main("model.pth"))

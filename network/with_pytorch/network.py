@@ -15,7 +15,7 @@ class Network(nn.Module):
         self.flatten = nn.Flatten()
         
         self.linear_layer = nn.Sequential(
-            nn.Linear(32*16*16, 512),
+            nn.Linear(32*14*14, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),

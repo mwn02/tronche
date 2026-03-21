@@ -18,17 +18,18 @@ ROOT_DIR = Path(__file__).parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from network.with_pytorch.network import Network  # noqa: E402
-
+from network.with_pytorch.main import crop_black
 
 EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 
 inference_transform = transforms.Compose(
-		[
-				transforms.Resize((32, 32)),
-				transforms.ToTensor(),
-				transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-				transforms.Grayscale(num_output_channels=1),
-		]
+	[
+    	transforms.Lambda(crop_black),
+		transforms.Resize((28, 28)),
+		transforms.Grayscale(num_output_channels=1),
+		transforms.ToTensor(),
+		transforms.Normalize(mean=[0.7242779731750488], std=[0.3213667869567871]),
+	]
 )
 
 
@@ -61,7 +62,7 @@ class EmojiDrawerApp:
 				self.root.title(f"Tronche — Draw Emoji ({model_name})")
 
 				self.canvas_size = 420
-				self.brush_width = 18
+				self.brush_width = 10
 
 				self._build_ui()
 				self._reset_image()
@@ -243,4 +244,4 @@ def main(model_name) -> int:
 
 
 if __name__ == "__main__":
-		raise SystemExit(main("model.pth"))
+		raise SystemExit(main("new_model.pth"))

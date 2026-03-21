@@ -508,119 +508,170 @@
 
         /* ── Mobile ──────────────────────────────────── */
         @media (max-width: 768px) {
-            body { flex-direction: column-reverse; }
-
-            /* Bottom toolbar: column layout with 3 rows */
-            #sidebar {
-                width: 100%;
-                flex-shrink: 0;
-                flex-direction: column;
-                padding: 10px 14px;
-                padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
-                box-sizing: border-box;
-                overflow: visible;
-                gap: 8px;
-                box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.15);
+            body {
+                display: block;
             }
 
-            /* Hide desktop-only elements */
-            .logo-area { display: none; }
-            .tagline, .toggle-row label { display: none; }
-            #advanced-stats { display: none !important; }
+            #canvas-container {
+                position: absolute;
+                inset: 0;
+                height: 100dvh;
+                z-index: 1;
+            }
 
-            /* ── Row 1: emoji + feedback (order 1, top of toolbar) ── */
+            #sidebar {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100dvh;
+                background: transparent;
+                box-shadow: none;
+                pointer-events: none;
+                z-index: 10;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            .control-group, #results-area, #correction-ui {
+                pointer-events: auto;
+            }
+
+            .logo-area, .tagline, .toggle-row label, #advanced-stats {
+                display: none !important;
+            }
+
+            /* ── Top floating pill ── */
             #results-area {
-                order: 1;
-                flex-grow: 0;
+                position: absolute;
+                top: calc(env(safe-area-inset-top, 0px) + 16px);
+                left: 50%;
+                transform: translateX(-50%);
                 min-height: auto;
-                flex-direction: row;
+                background: var(--surface-color);
+                box-sizing: border-box;
+                padding: 12px 24px;
+                border-radius: 30px;
+                box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+                display: flex;
+                flex-direction: column;
                 align-items: center;
-                justify-content: flex-start;
                 gap: 12px;
+                z-index: 20;
+                pointer-events: auto;
+                width: auto;
+                min-width: 220px;
+                max-width: 90vw;
             }
 
             #main-guess {
                 font-size: 48px;
                 margin: 0;
-                flex-shrink: 0;
                 line-height: 1;
             }
 
             #feedback-area {
                 margin-top: 0;
-                gap: 8px;
+                gap: 12px;
             }
 
             #feedback-area .btn {
-                padding: 6px 12px;
-                font-size: 13px;
+                padding: 8px 16px;
+                font-size: 14px;
             }
 
-            /* ── Row 2: palette + tool buttons (order 2) ── */
+            #correction-ui {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                right: auto;
+                background: transparent;
+                padding: 0;
+                margin-top: 4px;
+                box-shadow: none;
+                width: 100%;
+            }
+
+            /* ── Bottom drawer ── */
             .control-group {
-                order: 2;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--surface-color);
+                box-sizing: border-box;
+                padding: 14px 16px env(safe-area-inset-bottom, 12px) 16px;
+                border-radius: 22px 22px 0 0;
+                box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.13);
                 margin: 0;
                 display: flex;
-                flex-direction: row;
-                align-items: center;
-                gap: 8px;
+                flex-direction: column;
+                gap: 12px;
+                pointer-events: auto;
+                z-index: 10;
             }
 
             .control-group > label { display: none; }
 
-            /* Palette stretches to fill remaining width */
             .palette {
-                flex: 1;
                 display: flex;
-                gap: 5px;
+                flex-wrap: nowrap;
+                gap: 8px;
                 margin-bottom: 0;
+                overflow-x: auto;
+                padding-bottom: 4px;
+                -ms-overflow-style: none;
+                scrollbar-width: none;
             }
+            .palette::-webkit-scrollbar { display: none; }
 
-            /* Each swatch gets an equal share — no overflow */
             .color-swatch {
-                flex: 1;
-                min-width: 0;
-                width: auto;
-                height: 28px;
+                flex: 0 0 auto;
+                width: 36px;
+                height: 36px;
             }
 
             .action-row {
-                flex-shrink: 0;
+                display: flex;
+                gap: 8px;
                 margin-bottom: 0;
-                gap: 6px;
             }
 
             .action-row .tool-btn {
-                padding: 5px 8px;
-                font-size: 12px;
+                flex: 1;
                 margin-bottom: 0;
-                white-space: nowrap;
+                padding: 10px;
+                font-size: 14px;
             }
 
-            /* ── Row 3: session stats compact (order 3, bottom of toolbar) ── */
+            /* Settings icon-only button in tool row */
+            .action-row .settings-btn {
+                position: static;
+                top: auto;
+                right: auto;
+                width: 42px;
+                height: auto;
+                flex-shrink: 0;
+                flex-grow: 0;
+            }
+
+            /* Settings popup fixed above drawer */
+            .settings-popup {
+                position: fixed;
+                bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+                right: 16px;
+                top: auto;
+                z-index: 30;
+            }
+
+            /* Session stats inside drawer */
             #session-stats {
-                order: 3;
+                position: static;
                 margin-top: 0;
-                border-top: none;
-                padding-top: 0;
-                font-size: 11px;
+                border-top: 1px solid var(--border-color);
+                padding: 8px 0 0 0;
                 text-align: center;
-            }
-
-            /* Settings button repositioned for toolbar */
-            .settings-btn { top: 10px; right: 14px; }
-
-            /* Correction UI floats up into the canvas area */
-            #correction-ui {
-                position: absolute;
-                bottom: 100%;
-                left: 0;
-                right: 0;
-                background: var(--surface-color);
-                padding: 10px 14px;
-                border-radius: 8px 8px 0 0;
-                box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-                margin-top: 0;
+                font-size: 12px;
+                opacity: 0.8;
             }
         }
     </style>
@@ -663,32 +714,32 @@
                     <img src="icons/tronche_eraseall.svg" alt="">
                     <span>Erase All</span>
                 </button>
-            </div>
-        </div>
 
-        <!-- Settings button -->
-        <button class="settings-btn" id="settingsBtn" title="Settings">
-            <img src="icons/tronche_settings.svg" alt="Settings">
-        </button>
+                <!-- Settings button -->
+                <button class="settings-btn" id="settingsBtn" title="Settings">
+                    <img src="icons/tronche_settings.svg" alt="Settings">
+                </button>
 
-        <!-- Settings popup -->
-        <div class="settings-popup" id="settingsPopup">
-            <div class="toggle-row">
-                <label for="themeToggle" style="margin:0; cursor:pointer;">Dark Mode</label>
-                <label class="switch">
-                    <input type="checkbox" id="themeToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
+                <!-- Settings popup -->
+                <div class="settings-popup" id="settingsPopup">
+                    <div class="toggle-row">
+                        <label for="themeToggle" style="margin:0; cursor:pointer;">Dark Mode</label>
+                        <label class="switch">
+                            <input type="checkbox" id="themeToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
-            <hr>
+                    <hr>
 
-            <div class="toggle-row">
-                <label for="advancedToggle" style="margin:0; cursor:pointer;">Advanced Mode</label>
-                <label class="switch">
-                    <input type="checkbox" id="advancedToggle">
-                    <span class="slider"></span>
-                </label>
+                    <div class="toggle-row">
+                        <label for="advancedToggle" style="margin:0; cursor:pointer;">Advanced Mode</label>
+                        <label class="switch">
+                            <input type="checkbox" id="advancedToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
 

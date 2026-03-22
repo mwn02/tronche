@@ -43,6 +43,7 @@ class Network(nn.Module):
             loss.backward()
             optimizer.step()
 
+    @torch.no_grad()
     def test_model(self, dataloader, loss_fn):
         size = len(dataloader.dataset)
         num_batches = len(dataloader)

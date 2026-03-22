@@ -7,17 +7,20 @@ import numpy as np
 from network.with_pytorch.network import Network
 
 def crop_black(image):
-    gray = np.array(image.convert("L")) / 255.0
-    mask = gray < 0.15
+    """
+    Given a PIL Image, it crops the unecessary white space around the image, and returns the image.
+    """
+    gray = np.array(image.convert("L")) / 255.0 # convert to grayscale (0 is black, 1 is white)
+    mask = gray < 0.15 # mask for dark values
 
     coords = np.argwhere(mask)
     if coords.size == 0:
         return image
 
-    y_min, x_min = coords.min(axis=0)
-    y_max, x_max = coords.max(axis=0)
+    y_min, x_min = coords.min(axis=0) # computes the min per column -> gives the top-left corner
+    y_max, x_max = coords.max(axis=0) # computes the max per column -> gives the bottom-right corner
 
-    return image.crop((x_min, y_min, x_max + 1, y_max + 1))
+    return image.crop((x_min, y_min, x_max + 1, y_max + 1)) # add +1 because the boundaries are excluded
 
 if __name__ == "__main__":
     default_transform = torchvision.transforms.Compose([
@@ -43,15 +46,14 @@ if __name__ == "__main__":
 
     for images, _ in loader:
         batch_samples = images.size(0)
-        images = images.view(batch_samples, images.size(1), -1)
+        images = images.view(batch_samples, images.size(1), -1) # change shape (B, C, H, W) -> (B, C, H*W)
 
-        mean += images.sum(2).sum(0)
-        std += (images ** 2).sum(2).sum(0)
-        total_pixels += images.size(0) * images.size(2)
+        mean += images.sum(2).sum(0) # sum over each pixel, then over each sum of pixels
+        std += (images ** 2).sum(2).sum(0) # square over each pixel
+        total_pixels += images.size(0) * images.size(2) # batch size X number of pixels => total pixels
 
-    mean /= total_pixels
+    mean /= total_pixels # average over all pixels
     std = (std / total_pixels - mean ** 2).sqrt()
-    # UNDERSTAND THE CODE ABOVE ?!?!?!
 
     # Training transforms: Includes Augmentation
     train_transform = torchvision.transforms.Compose([

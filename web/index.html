@@ -355,7 +355,7 @@
         }
 
         #top-guesses {
-            display: flex;
+            display: none;
             gap: 10px;
             justify-content: center;
             font-size: 26px;
@@ -363,6 +363,28 @@
             margin-bottom: 10px;
             min-height: 30px;
             opacity: 0.65;
+        }
+
+        #drawable-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        #drawable-hint .drawable-emojis {
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: 4px;
+        }
+
+        #drawable-hint .drawable-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* ── Feedback ────────────────────────────────── */
@@ -552,7 +574,7 @@
                 pointer-events: auto;
             }
 
-            .logo-area, .tagline, .toggle-row label {
+            .logo-area, .tagline {
                 display: none !important;
             }
 
@@ -783,6 +805,10 @@
         <div id="results-area">
             <div id="main-guess">🙂</div>
             <div id="top-guesses"></div>
+            <div id="drawable-hint">
+                <span class="drawable-emojis">🙂 ☹️ ❤️ 😭 🤓</span>
+                <span class="drawable-label">These are the only emojis you can draw</span>
+            </div>
 
             <div id="feedback-area">
                 <button class="btn btn-correct" onclick="submitFeedback(true)">✅ Correct</button>
@@ -1047,6 +1073,7 @@
 
         function updateTopGuesses(probs) {
             const el = document.getElementById('top-guesses');
+            const hint = document.getElementById('drawable-hint');
             el.innerHTML = '';
             Object.entries(probs)
                 .sort((a, b) => b[1] - a[1])
@@ -1056,6 +1083,8 @@
                     span.textContent = emoji;
                     el.appendChild(span);
                 });
+            el.style.display = 'flex';
+            hint.style.display = 'none';
         }
 
         // Feedback Logic
@@ -1109,7 +1138,10 @@
             renderHistory = [];
             currentStroke = [];
             mainGuess.innerText = "🙂"; // Reset placeholder
-            document.getElementById('top-guesses').innerHTML = '';
+            const tg = document.getElementById('top-guesses');
+            tg.innerHTML = '';
+            tg.style.display = 'none';
+            document.getElementById('drawable-hint').style.display = 'flex';
             lastProbabilities = {};
 
             // Re-render empty stats if advanced is open
@@ -1124,7 +1156,10 @@
             currentStroke = [];
             feedbackArea.classList.remove('visible');
             mainGuess.innerText = "🙂";
-            document.getElementById('top-guesses').innerHTML = '';
+            const tg = document.getElementById('top-guesses');
+            tg.innerHTML = '';
+            tg.style.display = 'none';
+            document.getElementById('drawable-hint').style.display = 'flex';
             lastProbabilities = {};
             if (showAdvanced) advancedStats.innerHTML = '';
         }

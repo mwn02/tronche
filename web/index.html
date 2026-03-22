@@ -1097,6 +1097,7 @@
 
         function showCorrection() {
             feedbackArea.style.display = 'none';
+            document.getElementById('top-guesses').style.display = 'none';
 
             // Build top-5 emoji buttons from last probabilities
             correctionEmojiRow.innerHTML = '';
@@ -1117,6 +1118,7 @@
         function cancelCorrection() {
             correctionUi.style.display = 'none';
             feedbackArea.style.display = 'flex';
+            document.getElementById('top-guesses').style.display = 'flex';
         }
 
         function sendFeedback(correct, label) {

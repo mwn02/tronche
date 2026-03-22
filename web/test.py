@@ -19,6 +19,7 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 from network.with_pytorch.network import Network
+from network.with_pytorch.main import crop_black
 
 app = FastAPI()
 
@@ -45,17 +46,18 @@ EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 # Load trained model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Network(device)
-model_path = ROOT_DIR / "network" / "saved_models" / "model_94.pth"
+model_path = ROOT_DIR / "network" / "saved_models" / "best_model.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()
 print(f"Model loaded from {model_path} on {device}")
 
-# Preprocessing pipeline — mirrors training transforms, without augmentation
+# Preprocessing pipeline — must match draw_emoji.py inference_transform
 inference_transform = transforms.Compose([
+    transforms.Lambda(crop_black),
+    transforms.Resize((28, 28)),
     transforms.Grayscale(num_output_channels=1),
-    transforms.Resize((32, 32)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5], std=[0.5]),
+    transforms.Normalize(mean=[0.7242779731750488], std=[0.3213667869567871]),
 ])
 
 def predict(image_base64: str) -> tuple[dict, bytes]:
@@ -65,7 +67,7 @@ def predict(image_base64: str) -> tuple[dict, bytes]:
     # Save last received image for debugging
     image.save(ROOT_DIR / "data" / "debug_last_received.png")
     # Produce a 32x32 grayscale PNG for staging (mirrors training data format)
-    img_32 = image.convert("L").resize((32, 32), Image.LANCZOS)
+    img_32 = crop_black(image.convert("L")).resize((32, 32), Image.LANCZOS)
     buf = io.BytesIO()
     img_32.save(buf, format="PNG")
     png_bytes = buf.getvalue()

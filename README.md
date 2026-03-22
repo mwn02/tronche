@@ -20,5 +20,11 @@ Optional smoke test (no GUI, just verifies the model loads and runs inference on
 ```bash
 python draw_emoji.py --smoke
 ```
+# Run benchmarks
 
+All benchmarks (50 epochs)
+
+```bash
+python network/with_pytorch/benchmarks/run_all_benchmarks.py
+```
 # projet d'intelligence artificielle par les prophètes emojis 😎

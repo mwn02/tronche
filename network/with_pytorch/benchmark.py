@@ -72,12 +72,12 @@ for lr in learning_rates_to_test:
     plt.plot(range(1, epochs + 1), accuracies_for_this_lr, label=f"LR = {lr}")
 
 # Afficher et sauvegarder le graphique
-plt.title("Évolution de l'Accuracy selon le Learning Rate")
+plt.title("Évolution de la précision en fonction des époques selon le taux d'apprentissage")
 plt.xlabel("Époques")
-plt.ylabel("Accuracy (%)")
+plt.ylabel("Précision (%)")
 plt.legend()
 plt.grid(True, alpha=0.3)
 
-plt.savefig("network/with_pytorch/comparaison_lr.png")
+plt.savefig("network/with_pytorch/comparaison_lr_.png")
 plt.show()
 print("\nGraphique sauvegardé!")

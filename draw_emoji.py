@@ -6,7 +6,6 @@ import time
 from pathlib import Path
 
 import torch
-import torchvision.transforms as transforms
 from PIL import Image, ImageDraw
 
 # Tkinter is part of the Python standard library on Windows
@@ -18,20 +17,12 @@ ROOT_DIR = Path(__file__).parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from network.with_pytorch.network import Network  # noqa: E402
-from network.with_pytorch.main import crop_black
+from network.with_pytorch.transforms import get_test_transform
 
 EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 
 # THIS MUST MATCH WHAT IS USED IN `network.py`
-inference_transform = transforms.Compose(
-	[
-    	transforms.Lambda(crop_black),
-		transforms.Resize((28, 28)),
-		transforms.Grayscale(num_output_channels=1),
-		transforms.ToTensor(),
-		transforms.Normalize(mean=[0.7242779731750488], std=[0.3213667869567871]),
-	]
-)
+inference_transform = get_test_transform([0.7203512191772461], [0.3233848810195923])
 
 def _load_state_dict(model_path: Path, device: str) -> dict:
 	try:
@@ -224,4 +215,4 @@ def main(model_name) -> int:
 
 
 if __name__ == "__main__":
-	raise SystemExit(main("best_model.pth"))
+	raise SystemExit(main("maybe_best.pth"))

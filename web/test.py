@@ -46,7 +46,7 @@ EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 # Load trained model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Network(device)
-model_path = ROOT_DIR / "network" / "saved_models" / "best_model.pth"
+model_path = ROOT_DIR / "network" / "saved_models" / "best_maybe.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()
 print(f"Model loaded from {model_path} on {device}")
@@ -54,7 +54,7 @@ print(f"Model loaded from {model_path} on {device}")
 # Preprocessing pipeline — must match draw_emoji.py inference_transform
 inference_transform = transforms.Compose([
     transforms.Lambda(crop_black),
-    transforms.Resize((28, 28)),
+    transforms.Resize((32, 32)),
     transforms.Grayscale(num_output_channels=1),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.7242779731750488], std=[0.3213667869567871]),

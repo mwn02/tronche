@@ -9,7 +9,7 @@ def crop_black(image: Image.Image):
     Given a PIL Image, it crops the unecessary white space around the image, and returns the image.
     """
     gray = np.array(image.convert("L")) / 255.0 # convert to grayscale (0 is black, 1 is white)
-    mask = gray < 0.15 # mask for dark values
+    mask = gray < 0.9 # mask for dark values
 
     coords = np.argwhere(mask)
     if coords.size == 0:
@@ -63,8 +63,8 @@ def get_train_transform(mean, std):
         v2.Resize((32, 32), antialias=False),
         v2.Grayscale(num_output_channels=1),
         v2.RandomHorizontalFlip(),
-        v2.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=5, fill=255),
-        v2.GaussianNoise(),
+        v2.RandomAffine(degrees=15, translate=(0.05, 0.05), scale=(0.95, 1.05), shear=5, fill=255),
+        # v2.GaussianNoise(),
         v2.ToDtype(torch.float32, scale=True),
         v2.Normalize(mean, std),
     ])

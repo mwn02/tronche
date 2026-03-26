@@ -45,13 +45,13 @@ EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 # Load trained model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Network(device)
-model_path = ROOT_DIR / "network" / "saved_models" / "maybe_best.pth"
+model_path = ROOT_DIR / "network" / "saved_models" / "model_v1.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()
 print(f"Model loaded from {model_path} on {device}")
 
 # Preprocessing pipeline — must match draw_emoji.py inference_transform
-inference_transform = get_test_transform([0.7242779731750488], [0.3213667869567871])
+inference_transform = get_test_transform([0.7490295767784119], [0.30286073684692383])
 
 def predict(image_base64: str) -> tuple[dict, bytes]:
     """Run inference on a base64-encoded PNG. Returns (sorted_probs, png_32x32_bytes)."""

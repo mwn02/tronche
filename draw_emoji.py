@@ -22,7 +22,7 @@ from network.with_pytorch.transforms import get_test_transform
 EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 
 # THIS MUST MATCH WHAT IS USED IN `network.py`
-inference_transform = get_test_transform([0.7203512191772461], [0.3233848810195923])
+inference_transform = get_test_transform([0.7490295767784119], [0.30286073684692383])
 
 def _load_state_dict(model_path: Path, device: str) -> dict:
 	try:
@@ -101,8 +101,8 @@ class EmojiDrawerApp:
 		self.probs_text.grid(row=4, column=0, sticky="ew", pady=(8, 0))
 		self.probs_text.configure(state="disabled")
 
-		ttk.Label(sidebar, text=f"Device: {self.device} Input: 28x28 grayscale").grid(row=5, column=0, sticky="w", pady=(10, 0))
-		ttk.Label(sidebar, text="Input: 28x28 grayscale").grid(row=6, column=0, sticky="w", pady=(10, 0))
+		ttk.Label(sidebar, text=f"Device: {self.device} Input: 32x32 grayscale").grid(row=5, column=0, sticky="w", pady=(10, 0))
+		ttk.Label(sidebar, text="Input: 32x32 grayscale").grid(row=6, column=0, sticky="w", pady=(10, 0))
 
 		self.canvas.bind("<ButtonPress-1>", self._on_down)
 		self.canvas.bind("<B1-Motion>", self._on_move)
@@ -141,6 +141,7 @@ class EmojiDrawerApp:
 
 	def _on_up(self, _event) -> None:
 			self._last_x, self._last_y = None, None
+			self.on_predict()
 
 	def on_clear(self) -> None:
 			self.canvas.delete("all")
@@ -215,4 +216,4 @@ def main(model_name) -> int:
 
 
 if __name__ == "__main__":
-	raise SystemExit(main("maybe_best.pth"))
+	raise SystemExit(main("model_v1.pth"))

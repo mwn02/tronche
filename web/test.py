@@ -16,10 +16,9 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 import torch
-import torchvision.transforms as transforms
 from PIL import Image
 from network.with_pytorch.network import Network
-from network.with_pytorch.main import crop_black
+from network.with_pytorch.transforms import crop_black, get_test_transform
 
 app = FastAPI()
 
@@ -52,13 +51,7 @@ model.eval()
 print(f"Model loaded from {model_path} on {device}")
 
 # Preprocessing pipeline — must match draw_emoji.py inference_transform
-inference_transform = transforms.Compose([
-    transforms.Lambda(crop_black),
-    transforms.Resize((32, 32)),
-    transforms.Grayscale(num_output_channels=1),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.7242779731750488], std=[0.3213667869567871]),
-])
+inference_transform = get_test_transform([0.7242779731750488], [0.3213667869567871])
 
 def predict(image_base64: str) -> tuple[dict, bytes]:
     """Run inference on a base64-encoded PNG. Returns (sorted_probs, png_32x32_bytes)."""

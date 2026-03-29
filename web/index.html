@@ -1244,8 +1244,8 @@
             const offX = (rawSize - rawW) / 2;  // centering offset
             const offY = (rawSize - rawH) / 2;
 
-            // Render directly at 28x28 — matches training data exactly
-            const MODEL_SIZE = 28;
+            // Render directly at 32x32 — matches training data exactly
+            const MODEL_SIZE = 32;
             const scale = MODEL_SIZE / rawSize;
 
             const out = document.createElement('canvas');
@@ -1254,13 +1254,18 @@
             const outCtx = out.getContext('2d');
             outCtx.fillStyle = 'white';
             outCtx.fillRect(0, 0, MODEL_SIZE, MODEL_SIZE);
-            outCtx.strokeStyle = 'black';
-            outCtx.lineWidth = 2.5;  // matches pen-on-paper stroke at 32x32
             outCtx.lineCap = 'round';
             outCtx.lineJoin = 'round';
 
             for (const stroke of renderHistory) {
-                if (stroke.isEraser || stroke.points.length === 0) continue;
+                if (stroke.points.length === 0) continue;
+                if (stroke.isEraser) {
+                    outCtx.strokeStyle = 'white';
+                    outCtx.lineWidth = 20 * scale;
+                } else {
+                    outCtx.strokeStyle = 'black';
+                    outCtx.lineWidth = 2.5;  // matches pen-on-paper stroke at 32x32
+                }
                 outCtx.beginPath();
                 outCtx.moveTo((stroke.points[0].x - minX + offX) * scale,
                               (stroke.points[0].y - minY + offY) * scale);

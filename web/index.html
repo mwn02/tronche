@@ -1244,8 +1244,8 @@
             const offX = (rawSize - rawW) / 2;  // centering offset
             const offY = (rawSize - rawH) / 2;
 
-            // Render directly at 28x28 — matches training data exactly
-            const MODEL_SIZE = 28;
+            // Render directly at 32x32 — matches training data exactly
+            const MODEL_SIZE = 32;
             const scale = MODEL_SIZE / rawSize;
 
             const out = document.createElement('canvas');

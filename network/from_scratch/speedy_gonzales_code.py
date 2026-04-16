@@ -1,9 +1,10 @@
 import json
 import numpy as np
-from network.from_scratch.data_processing import load_mnist_data
+from network.from_scratch.data_processing import get_emoji_data, get_shuffled_data
 import time
 import multiprocessing
 from multiprocessing import Pool
+
 
 class ConvLayer:
     def __init__(self, channels_out, filter_size):
@@ -270,8 +271,8 @@ class CrossEntropyLoss:
         return None
 
 def test_model(input_test, labels_test, layers):
-    x = input_test.reshape(input_test.shape[0], 1, 28, 28) # batch size of 1 # x est l'image | est-ce que ce chang. de dims est nécessaire?
-    labels = labels_test.reshape(labels_test.shape[0], 10) # batch size of 1 #change for emojis!
+    x = input_test.reshape(input_test.shape[0], 1, 32, 32) # batch size of 1 # x est l'image | est-ce que ce chang. de dims est nécessaire?
+    labels = labels_test.reshape(labels_test.shape[0], 5) # batch size of 1 #change for emojis!
 
     # Handle if label is one-hot or an integer
     if labels.shape[1] > 1:
@@ -336,11 +337,11 @@ def one_hot(labels, num_classes):
 
 def main():
     # Pour exécuter le script, taper dans le terminal: py -m network.from_scratch.tomas_speed
-    #X, y = get_emoji_data("dataset/dataset-data/training-data/")
-    #input_train, input_test, label_train, label_test = get_shuffled_data(X, y, 5, 0.8)
+    X, y = get_emoji_data("dataset/dataset-data/training-data/")
+    input_train, input_test, label_train, label_test = get_shuffled_data(X, y, 5, 0.8)
 
     # données
-    input_train, input_test, label_train, label_test = load_mnist_data()
+    #input_train, input_test, label_train, label_test = load_mnist_data()
     # num_train = 30000
     # num_test = 5000
     # input_train = input_train[:num_train]
@@ -350,22 +351,21 @@ def main():
 
     # paramètres
     learning_rate = 0.01
-    mega_batch_size = 256
-    num_epochs = 5
+    mega_batch_size = 465
+    num_epochs = 30
 
     # réseau
     # add reshape layer?
-    layers = [
-        ConvLayer(8, 3), # output shape: 26x26x8
-        Relu(),         # output shape: 26x26x8
+    layers = [                                                            
+        ConvLayer(32, 3), # output shape: 26x26x8                          
+        Relu(),         # output shape: 26x26x8                           
         MaxPoolingLayer(2, stride=2), # output shape: 13x13x8
-        ConvLayer(16, 3),   # output shape: 11x11x16
-        Relu(),            # output shape: 11x11x16
-        MaxPoolingLayer(2, stride=2), # output shape: 5x5x16
         Flatten(),         # output shape: 400
-        DenseLayer(400, 100),
+        DenseLayer(7200, 512),
         Relu(),
-        DenseLayer(100, 10),
+        DenseLayer(512, 512),
+        Relu(),
+        DenseLayer(512, 5)
     ]
     # loss function chosen in the worker()
 
@@ -387,8 +387,8 @@ def main():
                 # entrainement d'un mini-lot
                 inputs = input_train_shuffled[start:end]
                 labels = label_train_shuffled[start:end]
-                x = inputs.reshape(real_mega_batch_size, 1, 28, 28) # x est l'image | est-ce que ce chang. de dims est nécessaire?
-                labels = labels.reshape(real_mega_batch_size, 10) # change for emojis!
+                x = inputs.reshape(real_mega_batch_size, 1, 32, 32) # x est l'image | est-ce que ce chang. de dims est nécessaire?
+                labels = labels.reshape(real_mega_batch_size, 5) # change for emojis!
 
                 chunk_size = real_mega_batch_size // n_workers + 1
                 params = []
@@ -411,21 +411,21 @@ def main():
             # tester le modèle
             accuracy = test_model(input_test, label_test, layers)
             print(f"\nEpoch {epoch+1} Done! Test Accuracy: {accuracy*100:.2f}%")
+        save_model(layers, accuracy, filename="emoji_cnn_model")
 
     print(f"finished in {time.time() - timestamp}")
 
 def worker(layer_params, x, labels):
-    layers = [
-        ConvLayer(8, 3), # output shape: 26x26x8
-        Relu(),         # output shape: 26x26x8
+    layers = [                                                            
+        ConvLayer(32, 3), # output shape: 26x26x8                          
+        Relu(),         # output shape: 26x26x8                           
         MaxPoolingLayer(2, stride=2), # output shape: 13x13x8
-        ConvLayer(16, 3),   # output shape: 11x11x16
-        Relu(),            # output shape: 11x11x16
-        MaxPoolingLayer(2, stride=2), # output shape: 5x5x16
         Flatten(),         # output shape: 400
-        DenseLayer(400, 100),
+        DenseLayer(7200, 512),
         Relu(),
-        DenseLayer(100, 10),
+        DenseLayer(512, 512),
+        Relu(),
+        DenseLayer(512, 5)
     ]
     set_layer_params(layers, layer_params)
     for layer in layers:
@@ -470,6 +470,11 @@ def set_layer_params(layers, params):
 # params: layers, inputs, labels, lr,
 
 if __name__ == "__main__":
+    pool = multiprocessing.Pool()
+
+    # Get the number of workers
+    num_workers = len(pool._pool)  
+    print(f"Number of workers in the pool: {num_workers}")
     main()
     
 #graphiques/images intéressants à mettre. En choisir 
@@ -479,3 +484,4 @@ if __name__ == "__main__":
 
 #Grad-CAM    (heatmap of important features)
 #t-SNE clusters 
+#py -m network.from_scratch.speedy_gonzales_code 

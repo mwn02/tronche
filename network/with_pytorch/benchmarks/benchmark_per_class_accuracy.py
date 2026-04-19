@@ -9,28 +9,19 @@ from network.with_pytorch.data_fetching import get_emoji_data
 
 EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 
-train_data, test_data = get_emoji_data(42)
-train_dataloader = DataLoader(train_data, batch_size=32, shuffle=True)
+_, test_data = get_emoji_data(42)
 test_dataloader = DataLoader(test_data, batch_size=32, shuffle=False)
 
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-epochs = 30
 
-torch.manual_seed(42)
 model = Network(device)
-loss_fn = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-
-for t in range(epochs):
-    model.train_model(train_dataloader, loss_fn, optimizer)
-    _, accuracy = model.test_model(test_dataloader, loss_fn)
-    print(f"Époque {t+1} - Accuracy: {accuracy:.1f}%")
+model.load_state_dict(torch.load("network/saved_models/model_v1_seed42.pth", map_location=device, weights_only=True))
+model.eval()
 
 # --- Précision par classe ---
 correct = [0] * 5
 total = [0] * 5
 
-model.eval()
 with torch.no_grad():
     for X, y in test_dataloader:
         X, y = X.to(device), y.to(device)

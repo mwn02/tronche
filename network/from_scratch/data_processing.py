@@ -3,6 +3,7 @@ from PIL import Image, ImageOps
 import random
 import os
 from torchvision import datasets, transforms
+from ..with_pytorch.transforms import crop_black
 
 def get_emoji_data(base_path):
     """
@@ -26,27 +27,31 @@ def get_emoji_data(base_path):
             full_path = os.path.join(category_path, image_name)
             
             img = Image.open(full_path)
-            img = img.resize((32, 32), resample=Image.BILINEAR)
+            img = crop_black(img)
+            img = img.resize((32, 32), resample=Image.Resampling.BILINEAR)
             img = ImageOps.grayscale(img)
+            if random.random() > 0.5:
+                img = ImageOps.mirror(img)
 
             # Aumentation de données
             angle = random.uniform(-15, 15)
-            tx = random.uniform(-0.1, 0.1) * 32
-            ty = random.uniform(-0.1, 0.1) * 32
+            tx = random.uniform(-0.05, 0.05) * 32
+            ty = random.uniform(-0.05, 0.05) * 32
 
             img = img.rotate(
                 angle, 
                 resample=Image.BILINEAR, 
                 expand=False, 
                 translate=(tx, ty),
-                fillcolor=0
+                fillcolor=255
             )
-
+            img = ImageOps.scale(img, 0.9 + random.random() * 0.2, Image.Resampling.BILINEAR)
+            img = img.resize((32, 32), resample=Image.Resampling.BILINEAR)
             # 3. NumPy Processing
             img_np = np.array(img).astype(np.float32) / 255.0
                 
             # Normalizing to range [-1, 1]
-            img_np = (img_np - 0.5) / 0.5
+            img_np = (img_np - 0.7490295767784119) / 0.30286073684692383
                 
             # on ajoute une dimension pour que la forme soit (32, 32, 1)
             img_np = np.expand_dims(img_np, axis=-1) 

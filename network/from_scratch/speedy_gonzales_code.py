@@ -4,13 +4,14 @@ from network.from_scratch.data_processing import get_emoji_data, get_shuffled_da
 import time
 import multiprocessing
 from multiprocessing import Pool
-
+import matplotlib.pyplot as plt
 
 class ConvLayer:
-    def __init__(self, channels_out, filter_size):
+    def __init__(self, channels_out, filter_size, padding=1):
         self.channels_out = channels_out
         self.filter_size = filter_size
-        self.filters = np.random.randn(channels_out, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))
+        self.padding = padding
+        self.filters = np.random.randn(channels_out, filter_size, filter_size) * np.sqrt(2 / filter_size**2)
         self.biases = np.zeros(channels_out)
         self.bias_gradients = np.zeros_like(self.biases)
         self.filter_weights_gradients = np.zeros_like(self.filters)
@@ -18,8 +19,21 @@ class ConvLayer:
     def forward(self, input_train):
         self.input_shape = input_train.shape
         self.input = input_train
+
+        if self.padding > 0:
+            padded_input = np.pad(
+                input_train,
+                ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
+                mode="constant",
+                constant_values=0
+            )
+        else:
+            padded_input = input_train
+
+        self.padded_input = padded_input
+
         # biases of shape (1, C_out, 1, 1) (-1 infers the dimensions C_out automatically)
-        return self.convolution(input_train, self.filters) + self.biases.reshape(1, -1, 1, 1)
+        return self.convolution(self.padded_input, self.filters) + self.biases.reshape(1, -1, 1, 1)
 
     def backward(self, incoming_error): 
         # filter: C_in x F x H_out x W_out
@@ -208,15 +222,15 @@ class DenseLayer:
     def backward(self, incoming_error):
         # dZ : (B, out_dim)
         
-        # Calculate gradients for this specific image
+        # Calcul du gradient pour cette image spécifique
         weight_gradient = incoming_error.T @ self.input
         bias_gradient = incoming_error.sum(axis=0) 
         
-        # ACCUMULATE: This is the secret sauce for batching
+        # Accumulation du gradient 
         self.dw_acc += weight_gradient
         self.db_acc += bias_gradient
         
-        # Pass the error to the previous layer
+        # Passage de l’erreur à la couche précédente
         previous_layer_error = incoming_error @ self.weights
         return previous_layer_error
     
@@ -319,8 +333,9 @@ def save_model(layers, accuracy, filename="model"):
             model_data.append({'type': 'Flatten'})
 
     # Construct filename and save as JSON
+    
     full_filename = f"{filename}_acc_{accuracy:.2f}.json"
-    with open(full_filename, 'w') as f:
+    with open(f"network/from_scratch/saved_models/{full_filename}", 'w') as f:
         json.dump(model_data, f)
     
     print(f"Model saved as {full_filename}")
@@ -351,7 +366,8 @@ def main():
 
     # paramètres
     learning_rate = 0.01
-    mega_batch_size = 465
+    n_workers = 16
+    mega_batch_size = num_workers * 2
     num_epochs = 30
 
     # réseau
@@ -361,7 +377,7 @@ def main():
         Relu(),         # output shape: 26x26x8                           
         MaxPoolingLayer(2, stride=2), # output shape: 13x13x8
         Flatten(),         # output shape: 400
-        DenseLayer(7200, 512),
+        DenseLayer(8192, 512),
         Relu(),
         DenseLayer(512, 512),
         Relu(),
@@ -370,7 +386,7 @@ def main():
     # loss function chosen in the worker()
 
     timestamp = time.time()
-    n_workers = 15
+    accuracies = []
     with Pool(n_workers) as p:
         # entrainement par époques
         for epoch in range(num_epochs):
@@ -406,12 +422,25 @@ def main():
                 for layer in layers:
                     layer.update(real_mega_batch_size, learning_rate)
 
-                print(f"\rEpoch {epoch+1} | Batch {start//mega_batch_size + 1} processing...", end="")
+                print(f"\rEpoch {epoch+1} | Batch {start//mega_batch_size + 1}/{len(input_train) // mega_batch_size + 1} processing...", end="")
             
             # tester le modèle
             accuracy = test_model(input_test, label_test, layers)
+            accuracies.append(accuracy)
             print(f"\nEpoch {epoch+1} Done! Test Accuracy: {accuracy*100:.2f}%")
-        save_model(layers, accuracy, filename="emoji_cnn_model")
+            save_model(layers, accuracy, filename="emoji_cnn_model")
+
+    np.save("network/from_scratch/accuracies.npy", np.array(accuracies))
+    accuracies = [accuracies[0]] + accuracies
+    plt.figure(figsize=(10, 6))
+    plt.plot(accuracies)
+    plt.title("Précision en fonction de l'époque")
+    plt.xlim(1, 30)  
+    plt.ylabel("Précision (%)")
+    plt.grid(True, alpha=0.3)
+    plt.savefig("network/from_scratch/accuracy.png")
+    plt.show()
+    print("\nGraphique sauvegardé!")
 
     print(f"finished in {time.time() - timestamp}")
 
@@ -421,7 +450,7 @@ def worker(layer_params, x, labels):
         Relu(),         # output shape: 26x26x8                           
         MaxPoolingLayer(2, stride=2), # output shape: 13x13x8
         Flatten(),         # output shape: 400
-        DenseLayer(7200, 512),
+        DenseLayer(8192, 512),
         Relu(),
         DenseLayer(512, 512),
         Relu(),
@@ -475,7 +504,17 @@ if __name__ == "__main__":
     # Get the number of workers
     num_workers = len(pool._pool)  
     print(f"Number of workers in the pool: {num_workers}")
-    main()
+    # main()
+    accuracies = np.load("network/from_scratch/accuracies.npy").tolist()
+    accuracies = [accuracies[0]] + accuracies
+    plt.figure(figsize=(10, 6))
+    plt.plot(accuracies)
+    plt.title("Précision en fonction de l'époque")
+    plt.xlim(1, 30)  
+    plt.ylabel("Précision (%)")
+    plt.grid(True, alpha=0.3)
+    plt.savefig("network/from_scratch/accuracy.png")
+    plt.show()
     
 #graphiques/images intéressants à mettre. En choisir 
 #courbe d'apprentissage 

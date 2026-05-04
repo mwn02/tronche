@@ -414,8 +414,10 @@ def main():
                     new_labels = labels[i:j]
                     params.append((layer_params, new_x, new_labels))
 
+                # compile les résultat (gradients calculés) de chaque worker
                 results = p.starmap(worker, params)
             
+                # additionne les gradients indépendemment calculés 
                 for result in results:
                     add_gradients(layers, result)
                 # fin de l'entrainement d'un mini-lot: descente du gradient
